@@ -1,0 +1,104 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Online Test</title>
+  <script type="module">
+    import { createClient } from 'https://esm.sh/@supabase/supabase-js'
+
+    const supabase = createClient('https://YOUR_PROJECT.supabase.co', 'YOUR_PUBLIC_ANON_KEY')
+
+    async function submitMultipleChoice(e) {
+      e.preventDefault()
+      const userId = document.getElementById('user_id').value
+      for (let i = 1; i <= 50; i++) {
+        const answer = document.querySelector(`input[name='mc_q${i}']:checked`)
+        if (answer) {
+          await supabase.from('multiple_choice_answers').insert([{
+            user_id: userId,
+            question_number: i,
+            answer: answer.value
+          }])
+        }
+      }
+      alert('ส่งคำตอบปรนัยเรียบร้อยแล้ว!')
+    }
+
+    async function submitEssay(e) {
+      e.preventDefault()
+      const userId = document.getElementById('user_id').value
+      for (let i = 1; i <= 10; i++) {
+        const answerText = document.getElementById(`essay_q${i}`).value
+        await supabase.from('essay_answers').insert([{
+          user_id: userId,
+          question_number: i,
+          answer_text: answerText
+        }])
+      }
+      alert('ส่งคำตอบอัตนัยเรียบร้อยแล้ว!')
+    }
+
+    async function uploadVoiceAnswer(qNum) {
+      const userId = document.getElementById('user_id').value
+      const fileInput = document.getElementById(`voice_q${qNum}`)
+      const file = fileInput.files[0]
+      const fileName = `voice_${userId}_q${qNum}_${Date.now()}.mp3`
+
+      const { data, error } = await supabase.storage
+        .from('voice-answers')
+        .upload(fileName, file)
+
+      if (error) {
+        console.error('Upload error:', error)
+      } else {
+        const audioUrl = `https://YOUR_PROJECT.supabase.co/storage/v1/object/public/voice-answers/${fileName}`
+        await supabase.from('voice_answers').insert([{
+          user_id: userId,
+          question_number: qNum,
+          audio_url: audioUrl
+        }])
+        alert(`อัปโหลดเสียงข้อ ${qNum} สำเร็จ`)
+      }
+    }
+  </script>
+</head>
+<body>
+  <h1>แบบทดสอบออนไลน์</h1>
+  <label>รหัสผู้ใช้งาน:</label>
+  <input type="text" id="user_id" placeholder="กรอกรหัสผู้ใช้งาน"><br><br>
+
+  <h2>ส่วนที่ 1: ปรนัย (50 ข้อ)</h2>
+  <form id="mc-form" onsubmit="submitMultipleChoice(event)">
+    <div>
+      <!-- ตัวอย่างข้อที่ 1 -->
+      <p>ข้อที่ 1: คำถามปรนัย</p>
+      <label><input type="radio" name="mc_q1" value="A"> A</label>
+      <label><input type="radio" name="mc_q1" value="B"> B</label>
+      <label><input type="radio" name="mc_q1" value="C"> C</label>
+      <label><input type="radio" name="mc_q1" value="D"> D</label>
+    </div>
+    <!-- เพิ่มข้ออื่น ๆ ตามต้องการ -->
+    <button type="submit">ส่งคำตอบปรนัย</button>
+  </form>
+
+  <h2>ส่วนที่ 2: อัตนัย (10 ข้อ)</h2>
+  <form id="essay-form" onsubmit="submitEssay(event)">
+    <div>
+      <p>ข้อที่ 1: คำถามอัตนัย</p>
+      <textarea id="essay_q1" rows="4" cols="50" placeholder="พิมพ์คำตอบที่นี่"></textarea>
+    </div>
+    <!-- เพิ่มข้ออื่น ๆ ตามต้องการ -->
+    <button type="submit">ส่งคำตอบอัตนัย</button>
+  </form>
+
+  <h2>ส่วนที่ 3: บันทึกเสียงตอบคำถาม (20 ข้อ)</h2>
+  <div>
+    <p>ข้อที่ 1: อัปโหลดไฟล์เสียง</p>
+    <input type="file" id="voice_q1" accept="audio/*">
+    <button onclick="uploadVoiceAnswer(1)">อัปโหลดเสียงข้อ 1</button>
+  </div>
+  <!-- เพิ่มข้ออื่น ๆ ตามต้องการ -->
+
+</body>
+</html>
