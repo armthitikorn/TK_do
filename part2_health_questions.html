@@ -217,7 +217,7 @@
         if (!currentUser) {
             showMessage("กรุณาเข้าสู่ระบบก่อน", "error");
             setTimeout(() => {
-                window.location.href = "index.html"; // หรือหน้าที่ใช้ Login
+                window.location.href = "part3_post_sales_rejections"; // หรือหน้าที่ใช้ Login
             }, 2000);
         } else {
             document.getElementById("userNameDisplay").textContent = currentUser.email || "ผู้ใช้งานนิรนาม";
@@ -422,4 +422,5 @@
         document.getElementById('submitAllBtn').addEventListener('click', uploadAll);
     </script>
 </body>
+
 </html>
