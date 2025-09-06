@@ -6,6 +6,7 @@
     <title>Part 3: การปฏิเสธหลังปิดการขาย</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
+        /* General Styles */
         body {
             font-family: 'Tahoma', sans-serif;
             background: #f0f2f5;
@@ -21,7 +22,7 @@
             background: #fff;
             padding: 30px;
             border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
         h1 {
             text-align: center;
@@ -34,13 +35,14 @@
             color: #555;
             margin-bottom: 20px;
         }
+        /* Question and Controls */
         .question {
             background: #f8f9fa;
             border: 1px solid #e2e6ea;
             border-radius: 8px;
             padding: 20px;
             margin-bottom: 15px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
         }
         .question p {
             font-weight: bold;
@@ -76,11 +78,6 @@
         .start-btn { background-color: #28a745; color: white; }
         .stop-btn { background-color: #dc3545; color: white; }
         .play-btn { background-color: #007bff; color: white; }
-        audio {
-            width: 100%;
-            margin-top: 15px;
-            display: none;
-        }
         .submit-btn {
             width: 100%;
             padding: 15px;
@@ -90,6 +87,17 @@
             font-size: 1.2em;
             font-weight: bold;
         }
+        audio {
+            width: 100%;
+            margin-top: 15px;
+            display: none;
+        }
+        .file-size {
+            margin-top: 5px;
+            font-size: 0.9em;
+            color: #6c757d;
+        }
+        /* Message and Loading */
         .message-box {
             position: fixed;
             top: 50%;
@@ -100,7 +108,7 @@
             border: 1px solid #badbcc;
             padding: 15px;
             border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             display: none;
             z-index: 1000;
         }
@@ -153,10 +161,64 @@
             font-weight: bold;
             font-size: 0.9em;
         }
-        .file-size {
-            margin-top: 5px;
-            font-size: 0.9em;
-            color: #6c757d;
+        /* Certificate Pop-up */
+        .certificate-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1001;
+            display: none;
+        }
+        .certificate-box {
+            background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+            border: 5px solid #ffd700;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            position: relative;
+            transform: scale(0.8);
+            animation: popIn 0.5s ease-out forwards;
+        }
+        @keyframes popIn {
+            to { transform: scale(1); }
+        }
+        .certificate-box h2 {
+            font-size: 2.5em;
+            color: #004085;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+        .certificate-box p {
+            font-size: 1.2em;
+            color: #555;
+            margin-top: 10px;
+        }
+        .certificate-box .name {
+            font-family: 'Georgia', serif;
+            font-size: 2em;
+            color: #d4af37;
+            margin: 20px 0;
+            font-weight: bold;
+            border-bottom: 2px solid #d4af37;
+            display: inline-block;
+            padding: 0 10px;
+        }
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 1.5em;
+            color: #aaa;
+            cursor: pointer;
+        }
+        .close-btn:hover {
+            color: #555;
         }
     </style>
 </head>
@@ -170,14 +232,22 @@
         </div>
     </div>
 
+    <div id="certificateOverlay" class="certificate-overlay">
+        <div class="certificate-box">
+            <span class="close-btn" onclick="hideCertificate()">&times;</span>
+            <h2>ใบประกาศนียบัตร</h2>
+            <p>มอบให้เพื่อแสดงว่า</p>
+            <p class="name" id="certificateName">ผู้ทำแบบทดสอบ</p>
+            <p>ได้ทำแบบทดสอบการพูดครบทั้ง 3 ส่วนแล้ว<br>ขอแสดงความยินดีในความสำเร็จของท่าน!</p>
+        </div>
+    </div>
+
     <div class="container">
         <h1>Part 3: การปฏิเสธหลังปิดการขาย</h1>
         <div class="user-info"><b>ชื่อผู้ทำแบบทดสอบ:</b> <span id="userNameDisplay">กำลังโหลด...</span></div>
-
         <div id="questions"></div>
-
         <button id="submitAllBtn" class="submit-btn">
-            <i class="fas fa-upload"></i> ส่งไฟล์เสียงทั้งหมด & ไปหน้าต่อไป
+            <i class="fas fa-upload"></i> ส่งไฟล์เสียงทั้งหมด & จบการทดสอบ
         </button>
     </div>
 
@@ -210,19 +280,22 @@
 
         let currentUser = null;
 
-        // ตรวจสอบสถานะการ Login ของผู้ใช้
-        const { data: { user } } = await supabase.auth.getSession();
-        currentUser = user;
+        // Function to show the certificate pop-up
+        function showCertificate(name) {
+            const certificateOverlay = document.getElementById('certificateOverlay');
+            const certificateName = document.getElementById('certificateName');
+            certificateName.textContent = name;
+            certificateOverlay.style.display = 'flex';
+        }
 
-        if (!currentUser) {
-            showMessage("กรุณาเข้าสู่ระบบก่อน", "error");
-            setTimeout(() => {
-                window.location.href = "index5.html";
-            }, 2000);
-        } else {
-            document.getElementById("userNameDisplay").textContent = currentUser.email || "ผู้ใช้งานนิรนาม";
+        // Function to hide the certificate pop-up and redirect
+        window.hideCertificate = function() {
+            const certificateOverlay = document.getElementById('certificateOverlay');
+            certificateOverlay.style.display = 'none';
+            window.location.href = "index5.html";
         }
         
+        // --- Recording and Upload Logic ---
         const questions = [
             "ยังไม่สนใจดีกว่า",
             "กลัวส่งเบี้ยไม่ไหว",
@@ -230,31 +303,44 @@
             "ขอปรึกษา",
             "เบี้ยแพงเกินไป"
         ];
-
         const container = document.getElementById("questions");
         let audioBlobs = {};
         let mediaRecorder;
+        
+        document.addEventListener('DOMContentLoaded', async () => {
+            const { data: { user } } = await supabase.auth.getSession();
+            currentUser = user;
 
-        questions.forEach((q, i) => {
-            const div = document.createElement("div");
-            div.className = "question";
-            div.innerHTML = `
-                <p><b>${i+1}. ${q}</b></p>
-                <div class="control-buttons">
-                    <button class="start-btn" data-index="${i}">
-                        <i class="fas fa-microphone"></i> เริ่มอัดเสียง
-                    </button>
-                    <button class="stop-btn" data-index="${i}" disabled>
-                        <i class="fas fa-stop-circle"></i> หยุดอัดเสียง
-                    </button>
-                    <button class="play-btn" data-index="${i}" disabled>
-                        <i class="fas fa-play-circle"></i> ฟังเสียง
-                    </button>
-                    <audio id="audio${i}" controls style="display:none;"></audio>
-                    <span class="file-size" id="fileSize${i}"></span>
-                </div>
-            `;
-            container.appendChild(div);
+            if (!currentUser) {
+                showMessage("กรุณาเข้าสู่ระบบก่อน", "error");
+                setTimeout(() => {
+                    window.location.href = "index5.html";
+                }, 2000);
+            } else {
+                document.getElementById("userNameDisplay").textContent = currentUser.email || "ผู้ใช้งานนิรนาม";
+            }
+            
+            questions.forEach((q, i) => {
+                const div = document.createElement("div");
+                div.className = "question";
+                div.innerHTML = `
+                    <p><b>${i+1}. ${q}</b></p>
+                    <div class="control-buttons">
+                        <button class="start-btn" data-index="${i}">
+                            <i class="fas fa-microphone"></i> เริ่มอัดเสียง
+                        </button>
+                        <button class="stop-btn" data-index="${i}" disabled>
+                            <i class="fas fa-stop-circle"></i> หยุดอัดเสียง
+                        </button>
+                        <button class="play-btn" data-index="${i}" disabled>
+                            <i class="fas fa-play-circle"></i> ฟังเสียง
+                        </button>
+                        <audio id="audio${i}" controls style="display:none;"></audio>
+                        <span class="file-size" id="fileSize${i}"></span>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
         });
 
         document.addEventListener('click', e => {
@@ -280,7 +366,6 @@
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 const options = { mimeType: 'audio/mp4', audioBitsPerSecond: 16000 };
                 mediaRecorder = new MediaRecorder(stream, options);
-
                 const audioChunks = [];
                 mediaRecorder.ondataavailable = e => {
                     if (e.data.size > 0) {
@@ -295,13 +380,10 @@
                     audioEl.src = url;
                     audioEl.style.display = "block";
                     document.querySelector(`.play-btn[data-index="${index}"]`).disabled = false;
-                    
                     const fileSizeKB = (blob.size / 1024).toFixed(2);
                     document.getElementById(`fileSize${index}`).textContent = `ขนาดไฟล์: ${fileSizeKB} KB`;
-                    
                     showMessage("บันทึกเสียงเรียบร้อยแล้ว", "info");
                 };
-
                 mediaRecorder.start();
                 document.querySelector(`.start-btn[data-index="${index}"]`).disabled = true;
                 document.querySelector(`.stop-btn[data-index="${index}"]`).disabled = false;
@@ -333,7 +415,6 @@
             if (!currentUser) {
                 return showMessage("ไม่พบผู้ใช้ กรุณาลองเข้าสู่ระบบใหม่", "error");
             }
-
             const allRecorded = questions.every((_, i) => audioBlobs[i]);
             if (!allRecorded) {
                 return showMessage("กรุณาอัดเสียงให้ครบทุกข้อก่อน", "error");
@@ -347,41 +428,33 @@
             try {
                 const totalSize = Object.values(audioBlobs).reduce((sum, blob) => sum + blob.size, 0);
                 let totalUploaded = 0;
-                
                 const supabaseInsertPromises = [];
 
                 for (let i = 0; i < questions.length; i++) {
                     const blob = audioBlobs[i];
-                    // ชื่อไฟล์จะระบุว่าเป็น Part 3 และมีคำถามที่ชัดเจน
                     const fileName = `${currentUser.id}_part3_q${i+1}_${uuidv4()}.mp4`;
                     
-                    // 1. อัปโหลดไฟล์เสียงไปที่ Supabase Storage
                     const { data: uploadData, error: uploadError } = await supabase.storage
-                        .from('audios') // ชื่อ bucket ใน Supabase
+                        .from('audios')
                         .upload(`${currentUser.id}/${fileName}`, blob, {
                             cacheControl: '3600',
                             upsert: false
                         });
-
                     if (uploadError) {
                         throw uploadError;
                     }
-
-                    // 2. ดึง public URL ของไฟล์ที่อัปโหลด
-                    const publicUrl = supabase.storage
+                    const { data: { publicUrl } } = supabase.storage
                         .from('audios')
-                        .getPublicUrl(`${currentUser.id}/${fileName}`).data.publicUrl;
+                        .getPublicUrl(`${currentUser.id}/${fileName}`);
 
-                    // 3. บันทึกข้อมูลลงในตาราง Supabase Database 'submissions_part1'
                     supabaseInsertPromises.push(supabase
-                        .from('submissions_part1') // ใช้ตาราง 'submissions_part1' ตามที่ระบุ
+                        .from('submissions_part3')
                         .insert([
                             {
                                 user_id: currentUser.id,
                                 email: currentUser.email,
                                 question_number: i + 1,
-                                // เพิ่ม field เพื่อระบุว่าเป็น Part 3
-                                part: 3, 
+                                part: 3,
                                 question_text: questions[i],
                                 audio_url: publicUrl,
                                 created_at: new Date().toISOString()
@@ -389,33 +462,24 @@
                         ])
                     );
 
-                    // อัปเดต Progress Bar
                     totalUploaded += blob.size;
                     const overallProgress = (totalUploaded / totalSize) * 100;
                     loadingText.textContent = `กำลังอัปโหลดไฟล์ที่ ${i+1} จาก ${questions.length}... (${Math.round(overallProgress)}%)`;
                     progressBar.style.width = `${overallProgress}%`;
                 }
-                
                 const results = await Promise.all(supabaseInsertPromises);
-                
                 const hasError = results.some(res => res.error);
                 if (hasError) {
                     throw new Error('มีข้อผิดพลาดในการบันทึกข้อมูล');
                 }
-
-                showMessage("ส่งไฟล์เสียงทั้งหมดเรียบร้อยแล้ว!", "info");
-                setTimeout(() => {
-                    window.location.href = "index5.html"; // เปลี่ยนเส้นทางเมื่อเสร็จสิ้น
-                }, 2000);
-
+                loadingOverlay.style.display = "none";
+                showCertificate(currentUser.email);
             } catch (err) {
                 console.error('เกิดข้อผิดพลาดในการอัปโหลด:', err);
                 showMessage(`เกิดข้อผิดพลาด: ${err.message}`, "error");
-            } finally {
                 loadingOverlay.style.display = "none";
             }
         }
-
         document.getElementById('submitAllBtn').addEventListener('click', uploadAll);
     </script>
 </body>
