@@ -193,7 +193,7 @@
     <div class="container">
         <h1>Part 2: คำถามเกี่ยวกับประกันสุขภาพ</h1>
         <div class="user-info">
-            <b>ชื่อผู้ทำแบบทดสอบ:</b> <span id="userNameDisplay">ผู้ใช้งานทั่วไป</span>
+            <b>ชื่อผู้ทำแบบทดสอบ:</b> <span id="userNameDisplay">กำลังโหลด...</span>
         </div>
 
         <div id="questions"></div>
@@ -228,11 +228,7 @@
         
         let audioBlobs = {};
         let mediaRecorder;
-        
-        // Pseudo-user for direct access without login
-        const pseudoUserId = uuidv4();
-        const pseudoUserEmail = `guest_${pseudoUserId.substring(0, 8)}@example.com`;
-        const currentUser = { id: pseudoUserId, email: pseudoUserEmail };
+        let currentUser = null;
 
         // DOM Elements
         const container = document.getElementById("questions");
@@ -245,7 +241,6 @@
 
         // --- Functions ---
 
-        // Function to display temporary messages to the user
         function showMessage(text, type = 'info') {
             messageBox.textContent = text;
             messageBox.style.display = 'block';
@@ -264,38 +259,45 @@
         }
 
         // Initialize UI on page load
-        document.addEventListener('DOMContentLoaded', () => {
-            userNameDisplay.textContent = `ผู้ใช้งาน: ${currentUser.email}`;
-            questions.forEach((q, i) => {
-                const div = document.createElement("div");
-                div.className = "question";
-                div.innerHTML = `
-                    <p><b>${i + 1}. ${q}</b></p>
-                    <div class="control-buttons">
-                        <button class="start-btn" data-index="${i}">
-                            <i class="fas fa-microphone"></i> เริ่มอัดเสียง
-                        </button>
-                        <button class="stop-btn" data-index="${i}" disabled>
-                            <i class="fas fa-stop-circle"></i> หยุดอัดเสียง
-                        </button>
-                        <button class="play-btn" data-index="${i}" disabled>
-                            <i class="fas fa-play-circle"></i> ฟังเสียง
-                        </button>
-                        <audio id="audio${i}" controls style="display:none;"></audio>
-                        <span class="file-size" id="fileSize${i}"></span>
-                    </div>
-                `;
-                container.appendChild(div);
-            });
+        document.addEventListener('DOMContentLoaded', async () => {
+            const { data: { session }, error } = await supabase.auth.getSession();
+            if (error || !session) {
+                showMessage("กรุณาเข้าสู่ระบบก่อน", "error");
+                setTimeout(() => {
+                    window.location.href = "login_page.html"; // เปลี่ยนเป็นชื่อหน้า login ของคุณ
+                }, 2000);
+            } else {
+                currentUser = session.user;
+                userNameDisplay.textContent = currentUser.email || "ผู้ใช้งานนิรนาม";
+                questions.forEach((q, i) => {
+                    const div = document.createElement("div");
+                    div.className = "question";
+                    div.innerHTML = `
+                        <p><b>${i + 1}. ${q}</b></p>
+                        <div class="control-buttons">
+                            <button class="start-btn" data-index="${i}">
+                                <i class="fas fa-microphone"></i> เริ่มอัดเสียง
+                            </button>
+                            <button class="stop-btn" data-index="${i}" disabled>
+                                <i class="fas fa-stop-circle"></i> หยุดอัดเสียง
+                            </button>
+                            <button class="play-btn" data-index="${i}" disabled>
+                                <i class="fas fa-play-circle"></i> ฟังเสียง
+                            </button>
+                            <audio id="audio${i}" controls style="display:none;"></audio>
+                            <span class="file-size" id="fileSize${i}"></span>
+                        </div>
+                    `;
+                    container.appendChild(div);
+                });
+            }
         });
 
         // Event listener for all control buttons
         document.addEventListener('click', e => {
             const target = e.target.closest('button');
             if (!target) return;
-
             const index = target.getAttribute('data-index');
-
             if (target.classList.contains('start-btn')) {
                 startRecording(index);
             } else if (target.classList.contains('stop-btn')) {
@@ -307,7 +309,6 @@
 
         // --- Recording and Upload Logic ---
 
-        // Function to start audio recording
         async function startRecording(index) {
             if (!navigator.mediaDevices) {
                 showMessage("เบราว์เซอร์นี้ไม่รองรับการอัดเสียง", "error");
@@ -332,10 +333,8 @@
                     audioEl.src = url;
                     audioEl.style.display = "block";
                     document.querySelector(`.play-btn[data-index="${index}"]`).disabled = false;
-                    
                     const fileSizeKB = (blob.size / 1024).toFixed(2);
                     document.getElementById(`fileSize${index}`).textContent = `ขนาดไฟล์: ${fileSizeKB} KB`;
-                    
                     showMessage("บันทึกเสียงเรียบร้อยแล้ว", "info");
                 };
 
@@ -349,7 +348,6 @@
             }
         }
 
-        // Function to stop audio recording
         function stopRecording(index) {
             if (mediaRecorder && mediaRecorder.state !== "inactive") {
                 mediaRecorder.stop();
@@ -358,7 +356,6 @@
             }
         }
 
-        // Function to play back recorded audio
         function playRecording(index) {
             const audioEl = document.getElementById("audio" + index);
             if (audioEl && audioEl.src) {
@@ -368,8 +365,11 @@
             }
         }
         
-        // Main function to upload all audio files to Supabase
         async function uploadAll() {
+            if (!currentUser) {
+                return showMessage("ไม่พบผู้ใช้ กรุณาเข้าสู่ระบบก่อน", "error");
+            }
+
             const allRecorded = questions.every((_, i) => audioBlobs[i]);
             if (!allRecorded) {
                 return showMessage("กรุณาอัดเสียงให้ครบทุกข้อก่อน", "error");
@@ -387,7 +387,6 @@
                     const blob = audioBlobs[i];
                     const fileName = `${currentUser.id}_part2_q${i+1}_${uuidv4()}.mp4`;
                     
-                    // 1. Upload audio file to Supabase Storage
                     const { error: uploadError } = await supabase.storage
                         .from('audios')
                         .upload(`${currentUser.id}/${fileName}`, blob, {
@@ -399,20 +398,17 @@
                         throw uploadError;
                     }
 
-                    // 2. Get the public URL of the uploaded file
                     const { data: { publicUrl } } = supabase.storage
                         .from('audios')
                         .getPublicUrl(`${currentUser.id}/${fileName}`);
 
-                    // 3. Save submission data to the Supabase Database table
                     supabaseInsertPromises.push(supabase
-                        .from('submissions_part1') // เปลี่ยนชื่อตารางเป็น submissions_part1
+                        .from('submissions_part2')
                         .insert([
                             {
                                 user_id: currentUser.id,
                                 email: currentUser.email,
                                 question_number: i + 1,
-                                part: 2, // ระบุว่าเป็น Part 2
                                 question_text: questions[i],
                                 audio_url: publicUrl,
                                 created_at: new Date().toISOString()
@@ -420,14 +416,12 @@
                         ])
                     );
 
-                    // Update progress bar
                     totalUploaded += blob.size;
                     const overallProgress = (totalUploaded / totalSize) * 100;
                     loadingText.textContent = `กำลังอัปโหลดไฟล์ที่ ${i + 1} จาก ${questions.length}... (${Math.round(overallProgress)}%)`;
                     progressBar.style.width = `${overallProgress}%`;
                 }
                 
-                // Wait for all database inserts to complete
                 const results = await Promise.all(supabaseInsertPromises);
                 
                 const hasError = results.some(res => res.error);
@@ -437,7 +431,7 @@
 
                 showMessage("ส่งไฟล์เสียงทั้งหมดเรียบร้อยแล้ว!", "info");
                 setTimeout(() => {
-                    window.location.href = "part3_post_sales_rejections.html";
+                    window.location.href = "part3_post_sales_rejections.html"; // ไปหน้าต่อไป
                 }, 2000);
 
             } catch (err) {
@@ -447,9 +441,8 @@
                 loadingOverlay.style.display = "none";
             }
         }
-
-        // Attach event listener to the submit button
         submitAllBtn.addEventListener('click', uploadAll);
     </script>
 </body>
 </html>
+
