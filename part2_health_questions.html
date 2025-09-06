@@ -264,7 +264,7 @@
             if (error || !session) {
                 showMessage("กรุณาเข้าสู่ระบบก่อน", "error");
                 setTimeout(() => {
-                    window.location.href = "login_page.html"; // เปลี่ยนเป็นชื่อหน้า login ของคุณ
+                    window.location.href = "login_page.html";
                 }, 2000);
             } else {
                 currentUser = session.user;
@@ -402,12 +402,14 @@
                         .from('audios')
                         .getPublicUrl(`${currentUser.id}/${fileName}`);
 
+                    // เปลี่ยนเป็นตาราง submissions_part1 และเพิ่ม part_number
                     supabaseInsertPromises.push(supabase
-                        .from('submissions_part2')
+                        .from('submissions_part1')
                         .insert([
                             {
                                 user_id: currentUser.id,
                                 email: currentUser.email,
+                                part_number: 2, // ระบุว่าเป็น Part 2
                                 question_number: i + 1,
                                 question_text: questions[i],
                                 audio_url: publicUrl,
@@ -431,7 +433,7 @@
 
                 showMessage("ส่งไฟล์เสียงทั้งหมดเรียบร้อยแล้ว!", "info");
                 setTimeout(() => {
-                    window.location.href = "part3_post_sales_rejections.html"; // ไปหน้าต่อไป
+                    window.location.href = "part3_post_sales_rejections.html";
                 }, 2000);
 
             } catch (err) {
@@ -445,4 +447,3 @@
     </script>
 </body>
 </html>
-
