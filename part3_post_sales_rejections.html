@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Part 3: การปฏิเสธหลังปิดการขาย</title>
+    <title>Part 3: การจัดการข้อโต้แย้งหลังการขาย</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
-        /* General Styles */
         body {
             font-family: 'Tahoma', sans-serif;
             background: #f0f2f5;
@@ -16,6 +15,7 @@
             flex-direction: column;
             align-items: center;
         }
+
         .container {
             max-width: 800px;
             width: 100%;
@@ -24,18 +24,20 @@
             border-radius: 12px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
+
         h1 {
             text-align: center;
             color: #004085;
             margin-bottom: 10px;
         }
+
         .user-info {
             text-align: center;
             font-size: 1.1em;
             color: #555;
             margin-bottom: 20px;
         }
-        /* Question and Controls */
+
         .question {
             background: #f8f9fa;
             border: 1px solid #e2e6ea;
@@ -44,18 +46,21 @@
             margin-bottom: 15px;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
         }
+
         .question p {
             font-weight: bold;
             color: #0056b3;
             margin-bottom: 15px;
             font-size: 1.1em;
         }
+
         .control-buttons {
             display: flex;
             flex-wrap: wrap;
             gap: 10px;
             align-items: center;
         }
+
         button {
             padding: 10px 15px;
             border: none;
@@ -64,20 +69,31 @@
             font-size: 1em;
             transition: background-color 0.3s ease, transform 0.2s;
         }
+
         button:hover {
             transform: translateY(-2px);
         }
+
         button:active {
             transform: translateY(0);
         }
+
         button:disabled {
             background-color: #e0e0e0 !important;
             cursor: not-allowed;
             transform: none;
         }
+
         .start-btn { background-color: #28a745; color: white; }
         .stop-btn { background-color: #dc3545; color: white; }
         .play-btn { background-color: #007bff; color: white; }
+
+        audio {
+            width: 100%;
+            margin-top: 15px;
+            display: none;
+        }
+
         .submit-btn {
             width: 100%;
             padding: 15px;
@@ -87,17 +103,7 @@
             font-size: 1.2em;
             font-weight: bold;
         }
-        audio {
-            width: 100%;
-            margin-top: 15px;
-            display: none;
-        }
-        .file-size {
-            margin-top: 5px;
-            font-size: 0.9em;
-            color: #6c757d;
-        }
-        /* Message and Loading */
+
         .message-box {
             position: fixed;
             top: 50%;
@@ -112,6 +118,7 @@
             display: none;
             z-index: 1000;
         }
+
         .loading-overlay {
             position: fixed;
             top: 0;
@@ -129,6 +136,7 @@
             color: #555;
             display: none;
         }
+
         .loading-spinner {
             border: 4px solid #f3f3f3;
             border-top: 4px solid #3498db;
@@ -137,10 +145,12 @@
             height: 40px;
             animation: spin 1s linear infinite;
         }
+
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
         .upload-progress {
             width: 100%;
             height: 25px;
@@ -149,6 +159,7 @@
             margin-top: 10px;
             overflow: hidden;
         }
+
         .progress-bar {
             height: 100%;
             background-color: #007bff;
@@ -161,64 +172,11 @@
             font-weight: bold;
             font-size: 0.9em;
         }
-        /* Certificate Pop-up */
-        .certificate-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.6);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1001;
-            display: none;
-        }
-        .certificate-box {
-            background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
-            border: 5px solid #ffd700;
-            border-radius: 15px;
-            padding: 40px;
-            text-align: center;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-            position: relative;
-            transform: scale(0.8);
-            animation: popIn 0.5s ease-out forwards;
-        }
-        @keyframes popIn {
-            to { transform: scale(1); }
-        }
-        .certificate-box h2 {
-            font-size: 2.5em;
-            color: #004085;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
-        }
-        .certificate-box p {
-            font-size: 1.2em;
-            color: #555;
-            margin-top: 10px;
-        }
-        .certificate-box .name {
-            font-family: 'Georgia', serif;
-            font-size: 2em;
-            color: #d4af37;
-            margin: 20px 0;
-            font-weight: bold;
-            border-bottom: 2px solid #d4af37;
-            display: inline-block;
-            padding: 0 10px;
-        }
-        .close-btn {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            font-size: 1.5em;
-            color: #aaa;
-            cursor: pointer;
-        }
-        .close-btn:hover {
-            color: #555;
+
+        .file-size {
+            margin-top: 5px;
+            font-size: 0.9em;
+            color: #6c757d;
         }
     </style>
 </head>
@@ -232,36 +190,58 @@
         </div>
     </div>
 
-    <div id="certificateOverlay" class="certificate-overlay">
-        <div class="certificate-box">
-            <span class="close-btn" onclick="hideCertificate()">&times;</span>
-            <h2>ใบประกาศนียบัตร</h2>
-            <p>มอบให้เพื่อแสดงว่า</p>
-            <p class="name" id="certificateName">ผู้ทำแบบทดสอบ</p>
-            <p>ได้ทำแบบทดสอบการพูดครบทั้ง 3 ส่วนแล้ว<br>ขอแสดงความยินดีในความสำเร็จของท่าน!</p>
-        </div>
-    </div>
-
     <div class="container">
-        <h1>Part 3: การปฏิเสธหลังปิดการขาย</h1>
-        <div class="user-info"><b>ชื่อผู้ทำแบบทดสอบ:</b> <span id="userNameDisplay">กำลังโหลด...</span></div>
+        <h1>Part 3: การจัดการข้อโต้แย้งหลังการขาย</h1>
+        <div class="user-info">
+            <b>ชื่อผู้ทำแบบทดสอบ:</b> <span id="userNameDisplay">กำลังโหลด...</span>
+        </div>
+
         <div id="questions"></div>
+
         <button id="submitAllBtn" class="submit-btn">
-            <i class="fas fa-upload"></i> ส่งไฟล์เสียงทั้งหมด & จบการทดสอบ
+            <i class="fas fa-upload"></i> ส่งไฟล์เสียงทั้งหมด & ไปหน้าต่อไป
         </button>
     </div>
 
     <script type="module">
         import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
         import { v4 as uuidv4 } from 'https://cdn.jsdelivr.net/npm/uuid@8.3.2/dist/esm-browser/index.js';
-
-        // **ต้องเปลี่ยน YOUR_SUPABASE_URL และ YOUR_SUPABASE_ANON_KEY ด้วยค่าจริงของคุณ**
+        
+        // Supabase Configuration
         const supabaseUrl = 'https://wzwyotzzxycqfwercakh.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6d3lvdHp6eHljcWZ3ZXJjYWtoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNTg3MTMsImV4cCI6MjA3MjYzNDcxM30.lgiAf9oBUqsaWGb3u_80wuoKAODQHE_lIBxpGumhrno';
         const supabase = createClient(supabaseUrl, supabaseKey);
 
+        // Global variables
+        const questions = [
+            "อยากยกเลิกกรมธรรม์",
+            "ไม่เข้าใจเงื่อนไขกรมธรรม์",
+            "ทำไมการเคลมประกันถึงยุ่งยาก",
+            "ค่าเบี้ยประกันแพงกว่าที่คิดไว้",
+            "เพื่อนบอกว่าประกันนี้ไม่ดี",
+            "ไม่ได้รับความคุ้มครองตามที่เข้าใจ",
+            "ต้องการเปลี่ยนแผนประกัน",
+            "จะได้รับข้อมูลข่าวสารและสิทธิประโยชน์อย่างไร",
+            "จะใช้บัตรประกันอิเล็กทรอนิกส์ยังไง",
+            "ไม่ได้รับแจ้งเตือนการต่ออายุกรมธรรม์"
+        ];
+        
+        let audioBlobs = {};
+        let mediaRecorder;
+        let currentUser = null;
+
+        // DOM Elements
+        const container = document.getElementById("questions");
+        const submitAllBtn = document.getElementById('submitAllBtn');
+        const userNameDisplay = document.getElementById("userNameDisplay");
+        const loadingOverlay = document.getElementById("loadingOverlay");
+        const loadingText = document.getElementById("loadingText");
+        const progressBar = document.getElementById("progressBar");
+        const messageBox = document.getElementById('messageBox');
+
+        // --- Functions ---
+
         function showMessage(text, type = 'info') {
-            const messageBox = document.getElementById('messageBox');
             messageBox.textContent = text;
             messageBox.style.display = 'block';
             if (type === 'error') {
@@ -278,76 +258,46 @@
             }, 3000);
         }
 
-        let currentUser = null;
-
-        // Function to show the certificate pop-up
-        function showCertificate(name) {
-            const certificateOverlay = document.getElementById('certificateOverlay');
-            const certificateName = document.getElementById('certificateName');
-            certificateName.textContent = name;
-            certificateOverlay.style.display = 'flex';
-        }
-
-        // Function to hide the certificate pop-up and redirect
-        window.hideCertificate = function() {
-            const certificateOverlay = document.getElementById('certificateOverlay');
-            certificateOverlay.style.display = 'none';
-            window.location.href = "index5.html";
-        }
-        
-        // --- Recording and Upload Logic ---
-        const questions = [
-            "ยังไม่สนใจดีกว่า",
-            "กลัวส่งเบี้ยไม่ไหว",
-            "ขอคิดดูก่อน",
-            "ขอปรึกษา",
-            "เบี้ยแพงเกินไป"
-        ];
-        const container = document.getElementById("questions");
-        let audioBlobs = {};
-        let mediaRecorder;
-        
+        // Initialize UI on page load
         document.addEventListener('DOMContentLoaded', async () => {
-            const { data: { user } } = await supabase.auth.getSession();
-            currentUser = user;
-
-            if (!currentUser) {
+            const { data: { session }, error } = await supabase.auth.getSession();
+            if (error || !session) {
                 showMessage("กรุณาเข้าสู่ระบบก่อน", "error");
                 setTimeout(() => {
-                    window.location.href = "index5.html";
+                    window.location.href = "login_page.html"; // เปลี่ยนเป็นชื่อหน้า login ของคุณ
                 }, 2000);
             } else {
-                document.getElementById("userNameDisplay").textContent = currentUser.email || "ผู้ใช้งานนิรนาม";
+                currentUser = session.user;
+                userNameDisplay.textContent = currentUser.email || "ผู้ใช้งานนิรนาม";
+                questions.forEach((q, i) => {
+                    const div = document.createElement("div");
+                    div.className = "question";
+                    div.innerHTML = `
+                        <p><b>${i + 1}. ${q}</b></p>
+                        <div class="control-buttons">
+                            <button class="start-btn" data-index="${i}">
+                                <i class="fas fa-microphone"></i> เริ่มอัดเสียง
+                            </button>
+                            <button class="stop-btn" data-index="${i}" disabled>
+                                <i class="fas fa-stop-circle"></i> หยุดอัดเสียง
+                            </button>
+                            <button class="play-btn" data-index="${i}" disabled>
+                                <i class="fas fa-play-circle"></i> ฟังเสียง
+                            </button>
+                            <audio id="audio${i}" controls style="display:none;"></audio>
+                            <span class="file-size" id="fileSize${i}"></span>
+                        </div>
+                    `;
+                    container.appendChild(div);
+                });
             }
-            
-            questions.forEach((q, i) => {
-                const div = document.createElement("div");
-                div.className = "question";
-                div.innerHTML = `
-                    <p><b>${i+1}. ${q}</b></p>
-                    <div class="control-buttons">
-                        <button class="start-btn" data-index="${i}">
-                            <i class="fas fa-microphone"></i> เริ่มอัดเสียง
-                        </button>
-                        <button class="stop-btn" data-index="${i}" disabled>
-                            <i class="fas fa-stop-circle"></i> หยุดอัดเสียง
-                        </button>
-                        <button class="play-btn" data-index="${i}" disabled>
-                            <i class="fas fa-play-circle"></i> ฟังเสียง
-                        </button>
-                        <audio id="audio${i}" controls style="display:none;"></audio>
-                        <span class="file-size" id="fileSize${i}"></span>
-                    </div>
-                `;
-                container.appendChild(div);
-            });
         });
 
+        // Event listener for all control buttons
         document.addEventListener('click', e => {
             const target = e.target.closest('button');
             if (!target) return;
             const index = target.getAttribute('data-index');
-
             if (target.classList.contains('start-btn')) {
                 startRecording(index);
             } else if (target.classList.contains('stop-btn')) {
@@ -356,6 +306,8 @@
                 playRecording(index);
             }
         });
+
+        // --- Recording and Upload Logic ---
 
         async function startRecording(index) {
             if (!navigator.mediaDevices) {
@@ -366,6 +318,7 @@
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 const options = { mimeType: 'audio/mp4', audioBitsPerSecond: 16000 };
                 mediaRecorder = new MediaRecorder(stream, options);
+
                 const audioChunks = [];
                 mediaRecorder.ondataavailable = e => {
                     if (e.data.size > 0) {
@@ -384,6 +337,7 @@
                     document.getElementById(`fileSize${index}`).textContent = `ขนาดไฟล์: ${fileSizeKB} KB`;
                     showMessage("บันทึกเสียงเรียบร้อยแล้ว", "info");
                 };
+
                 mediaRecorder.start();
                 document.querySelector(`.start-btn[data-index="${index}"]`).disabled = true;
                 document.querySelector(`.stop-btn[data-index="${index}"]`).disabled = false;
@@ -413,48 +367,48 @@
         
         async function uploadAll() {
             if (!currentUser) {
-                return showMessage("ไม่พบผู้ใช้ กรุณาลองเข้าสู่ระบบใหม่", "error");
+                return showMessage("ไม่พบผู้ใช้ กรุณาเข้าสู่ระบบก่อน", "error");
             }
+
             const allRecorded = questions.every((_, i) => audioBlobs[i]);
             if (!allRecorded) {
                 return showMessage("กรุณาอัดเสียงให้ครบทุกข้อก่อน", "error");
             }
 
-            const loadingOverlay = document.getElementById("loadingOverlay");
-            const loadingText = document.getElementById("loadingText");
-            const progressBar = document.getElementById("progressBar");
             loadingOverlay.style.display = "flex";
 
             try {
                 const totalSize = Object.values(audioBlobs).reduce((sum, blob) => sum + blob.size, 0);
                 let totalUploaded = 0;
+                
                 const supabaseInsertPromises = [];
 
                 for (let i = 0; i < questions.length; i++) {
                     const blob = audioBlobs[i];
                     const fileName = `${currentUser.id}_part3_q${i+1}_${uuidv4()}.mp4`;
                     
-                    const { data: uploadData, error: uploadError } = await supabase.storage
+                    const { error: uploadError } = await supabase.storage
                         .from('audios')
                         .upload(`${currentUser.id}/${fileName}`, blob, {
                             cacheControl: '3600',
                             upsert: false
                         });
+
                     if (uploadError) {
                         throw uploadError;
                     }
+
                     const { data: { publicUrl } } = supabase.storage
                         .from('audios')
                         .getPublicUrl(`${currentUser.id}/${fileName}`);
 
                     supabaseInsertPromises.push(supabase
-                        .from('submissions_part1') // เปลี่ยนชื่อตารางเป็น submissions_part1
+                        .from('submissions_part3')
                         .insert([
                             {
                                 user_id: currentUser.id,
                                 email: currentUser.email,
                                 question_number: i + 1,
-                                part: 3, // ระบุว่าเป็น Part 3
                                 question_text: questions[i],
                                 audio_url: publicUrl,
                                 created_at: new Date().toISOString()
@@ -464,23 +418,32 @@
 
                     totalUploaded += blob.size;
                     const overallProgress = (totalUploaded / totalSize) * 100;
-                    loadingText.textContent = `กำลังอัปโหลดไฟล์ที่ ${i+1} จาก ${questions.length}... (${Math.round(overallProgress)}%)`;
+                    loadingText.textContent = `กำลังอัปโหลดไฟล์ที่ ${i + 1} จาก ${questions.length}... (${Math.round(overallProgress)}%)`;
                     progressBar.style.width = `${overallProgress}%`;
                 }
+                
                 const results = await Promise.all(supabaseInsertPromises);
+                
                 const hasError = results.some(res => res.error);
                 if (hasError) {
                     throw new Error('มีข้อผิดพลาดในการบันทึกข้อมูล');
                 }
-                loadingOverlay.style.display = "none";
-                showCertificate(currentUser.email);
+
+                showMessage("ส่งไฟล์เสียงทั้งหมดเรียบร้อยแล้ว!", "info");
+                setTimeout(() => {
+                    // Redirect ไปยังหน้าสรุปหรือหน้าสุดท้ายของแบบทดสอบ
+                    window.location.href = "summary_page.html"; 
+                }, 2000);
+
             } catch (err) {
                 console.error('เกิดข้อผิดพลาดในการอัปโหลด:', err);
                 showMessage(`เกิดข้อผิดพลาด: ${err.message}`, "error");
+            } finally {
                 loadingOverlay.style.display = "none";
             }
         }
-        document.getElementById('submitAllBtn').addEventListener('click', uploadAll);
+        submitAllBtn.addEventListener('click', uploadAll);
     </script>
 </body>
 </html>
+
