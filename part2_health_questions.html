@@ -406,13 +406,13 @@
 
                     // 3. Save submission data to the Supabase Database table
                     supabaseInsertPromises.push(supabase
-                        .from('submissions_part2')
+                        .from('submissions_part1') // เปลี่ยนชื่อตารางเป็น submissions_part1
                         .insert([
                             {
                                 user_id: currentUser.id,
                                 email: currentUser.email,
                                 question_number: i + 1,
-                                part: 2,
+                                part: 2, // ระบุว่าเป็น Part 2
                                 question_text: questions[i],
                                 audio_url: publicUrl,
                                 created_at: new Date().toISOString()
