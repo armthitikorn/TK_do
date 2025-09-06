@@ -403,20 +403,20 @@
                         .getPublicUrl(`${currentUser.id}/${fileName}`);
 
                     // เปลี่ยนเป็นตาราง submissions_part1 และเพิ่ม part_number
-                    supabaseInsertPromises.push(supabase
-                        .from('submissions_part1')
-                        .insert([
-                            {
-                                user_id: currentUser.id,
-                                email: currentUser.email,
-                                part_number: 2, // ระบุว่าเป็น Part 2
-                                question_number: i + 1,
-                                question_text: questions[i],
-                                audio_url: publicUrl,
-                                created_at: new Date().toISOString()
-                            }
-                        ])
-                    );
+                   supabaseInsertPromises.push(supabase
+    .from('submissions_part1')
+    .insert([
+        {
+            user_id: currentUser.id,
+            email: currentUser.email,
+            part_number: 2, // เพิ่มบรรทัดนี้เพื่อระบุว่าเป็น Part 2
+            question_number: i + 1,
+            question_text: questions[i],
+            audio_url: publicUrl,
+            created_at: new Date().toISOString()
+        }
+    ])
+);
 
                     totalUploaded += blob.size;
                     const overallProgress = (totalUploaded / totalSize) * 100;
@@ -447,3 +447,4 @@
     </script>
 </body>
 </html>
+
