@@ -552,28 +552,30 @@
             }
         });
 
-        document.getElementById('submitPart3Btn').addEventListener('click', async () => {
-            const success = await uploadData(3);
-            if (success) {
-                // แสดง Pop-up แสดงความยินดี
-                popupTitle.textContent = "แบบทดสอบเสร็จสมบูรณ์!";
-                popupMessage.textContent = "ขอบคุณที่ทำแบบทดสอบครับ! คุณสามารถออกจากระบบได้เลย";
-                popup.style.display = 'flex';
-                
-                // เปลี่ยนปุ่มใน Pop-up เป็นปุ่ม Logout
-                popupBtn.textContent = "ออกจากระบบ";
-                popupBtn.onclick = async () => {
-                    const { error } = await supabase.auth.signOut();
-                    if (error) {
-                        console.error("Logout Error:", error.message);
-                        showMessage("เกิดข้อผิดพลาดในการออกจากระบบ", "error");
-                    } else {
-                        window.location.href = "login_page.html"; // หรือหน้าที่คุณต้องการให้ไปหลัง Logout
-                    }
-                };
+      document.getElementById('submitPart3Btn').addEventListener('click', async () => {
+    const success = await uploadData(3);
+    if (success) {
+        // แสดง Pop-up แสดงความยินดี
+        popupTitle.textContent = "แบบทดสอบเสร็จสมบูรณ์!";
+        popupMessage.textContent = "ขอบคุณที่ทำแบบทดสอบครับ! คุณสามารถออกจากระบบได้เลย";
+        popup.style.display = 'flex';
+        
+        // เปลี่ยนปุ่มใน Pop-up เป็นปุ่ม Logout
+        popupBtn.textContent = "ออกจากระบบ";
+        popupBtn.onclick = async () => {
+            const { error } = await supabase.auth.signOut();
+            if (error) {
+                console.error("Logout Error:", error.message);
+                showMessage("เกิดข้อผิดพลาดในการออกจากระบบ", "error");
+            } else {
+                // แก้ไขตรงนี้: เปลี่ยน "login_page.html" เป็น "index.html"
+                window.location.href = "index.html";
             }
-        });
+        };
+    }
+});
 
     </script>
 </body>
 </html>
+
