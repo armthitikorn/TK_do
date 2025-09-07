@@ -356,8 +356,6 @@
             const { data: { session }, error } = await supabase.auth.getSession();
             if (error || !session) {
                 showMessage("กรุณาเข้าสู่ระบบก่อน", "error");
-                // Note: Redirecting to a login page would be necessary here.
-                // For this example, we'll just stop execution.
                 console.error("User not authenticated.");
                 return;
             }
@@ -391,7 +389,7 @@
 
             try {
                 audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                const options = { mimeType: 'audio/webm' }; // Changed mimeType for broader browser support
+                const options = { mimeType: 'audio/webm' };
                 mediaRecorder = new MediaRecorder(audioStream, options);
 
                 const audioChunks = [];
@@ -434,7 +432,7 @@
         function stopRecording(part, index, button) {
             if (mediaRecorder && mediaRecorder.state !== "inactive") {
                 mediaRecorder.stop();
-                audioStream.getTracks().forEach(track => track.stop()); // Stop the microphone access
+                audioStream.getTracks().forEach(track => track.stop());
                 button.disabled = true;
                 const startBtn = document.querySelector(`.start-btn[data-part="${part}"][data-index="${index}"]`);
                 startBtn.disabled = false;
@@ -470,6 +468,7 @@
                     const blob = audioBlobs[partNumber][i];
                     const fileName = `${currentUser.id}/part${partNumber}/q${i+1}_${uuidv4()}.webm`;
                     
+                    // Upload file to Supabase Storage
                     const { data: uploadData, error: uploadError } = await supabase.storage
                         .from('audios')
                         .upload(fileName, blob, {
@@ -483,6 +482,7 @@
                         .from('audios')
                         .getPublicUrl(fileName);
 
+                    // Insert record into Supabase Database
                     const { error: insertError } = await supabase
                         .from('submissions')
                         .insert([
@@ -552,25 +552,27 @@
             }
         });
 
-     document.getElementById('submitPart3Btn').addEventListener('click', async () => {
-    const success = await uploadData(3);
-    if (success) {
-        // แสดง Pop-up แสดงความยินดี
-        popupTitle.textContent = "แบบทดสอบเสร็จสมบูรณ์!";
-        popupMessage.textContent = "ขอบคุณที่ทำแบบทดสอบครับ! คุณสามารถออกจากระบบได้เลย";
-        popup.style.display = 'flex';
-        
-        // เปลี่ยนปุ่มใน Pop-up เป็นปุ่ม Logout
-        popupBtn.textContent = "ออกจากระบบ";
-        popupBtn.onclick = async () => {
-            const { error } = await supabase.auth.signOut();
-            if (error) {
-                console.error("Logout Error:", error.message);
-                showMessage("เกิดข้อผิดพลาดในการออกจากระบบ", "error");
-            } else {
-                window.location.href = "login_page.html"; // หรือหน้าที่คุณต้องการให้ไปหลัง Logout
+        document.getElementById('submitPart3Btn').addEventListener('click', async () => {
+            const success = await uploadData(3);
+            if (success) {
+                // แสดง Pop-up แสดงความยินดี
+                popupTitle.textContent = "แบบทดสอบเสร็จสมบูรณ์!";
+                popupMessage.textContent = "ขอบคุณที่ทำแบบทดสอบครับ! คุณสามารถออกจากระบบได้เลย";
+                popup.style.display = 'flex';
+                
+                // เปลี่ยนปุ่มใน Pop-up เป็นปุ่ม Logout
+                popupBtn.textContent = "ออกจากระบบ";
+                popupBtn.onclick = async () => {
+                    const { error } = await supabase.auth.signOut();
+                    if (error) {
+                        console.error("Logout Error:", error.message);
+                        showMessage("เกิดข้อผิดพลาดในการออกจากระบบ", "error");
+                    } else {
+                        window.location.href = "login_page.html"; // หรือหน้าที่คุณต้องการให้ไปหลัง Logout
+                    }
+                };
             }
-        };
+        });
 
     </script>
 </body>
