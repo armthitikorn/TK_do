@@ -248,8 +248,8 @@
         let audioBlobs = {};
         let mediaRecorder;
         let currentUser = null;
-        let currentPartQuestions = [];
         let currentPartIndex = 1;
+        let audioStream; // Store the audio stream globally
 
         const parts = {
             1: {
@@ -260,8 +260,7 @@
                     "จากข้อมูลที่คุณลูกค้าแจ้งมา ผมขออนุญาตนำเสนอแผนที่เหมาะสมดังนี้",
                     "คุณลูกค้ามีข้อสงสัยหรืออยากสอบถามข้อมูลเพิ่มเติมเกี่ยวกับแผนนี้ไหม"
                 ],
-                domId: 'part1Questions',
-                submitBtnId: 'submitPart1Btn'
+                domId: 'part1Questions'
             },
             2: {
                 questions: [
@@ -276,8 +275,7 @@
                     "การเคลมประกันต้องทำอย่างไรบ้าง",
                     "ระยะเวลารอคอย (Waiting Period) ของกรมธรรม์นี้คืออะไร"
                 ],
-                domId: 'part2Questions',
-                submitBtnId: 'submitPart2Btn'
+                domId: 'part2Questions'
             },
             3: {
                 questions: [
@@ -292,8 +290,7 @@
                     "จะใช้บัตรประกันอิเล็กทรอนิกส์ยังไง",
                     "ไม่ได้รับแจ้งเตือนการต่ออายุกรมธรรม์"
                 ],
-                domId: 'part3Questions',
-                submitBtnId: 'submitPart3Btn'
+                domId: 'part3Questions'
             }
         };
 
@@ -359,14 +356,14 @@
             const { data: { session }, error } = await supabase.auth.getSession();
             if (error || !session) {
                 showMessage("กรุณาเข้าสู่ระบบก่อน", "error");
-                setTimeout(() => {
-                    window.location.href = "login_page.html";
-                }, 2000);
-            } else {
-                currentUser = session.user;
-                userNameDisplay.textContent = currentUser.email || "ผู้ใช้งานนิรนาม";
-                renderQuestions(parts[currentPartIndex]);
+                // Note: Redirecting to a login page would be necessary here.
+                // For this example, we'll just stop execution.
+                console.error("User not authenticated.");
+                return;
             }
+            currentUser = session.user;
+            userNameDisplay.textContent = currentUser.email || "ผู้ใช้งานนิรนาม";
+            renderQuestions(parts[currentPartIndex]);
         });
 
         // Event listener for all control buttons
@@ -377,25 +374,25 @@
             const index = target.getAttribute('data-index');
 
             if (target.classList.contains('start-btn')) {
-                startRecording(part, index);
+                startRecording(part, index, target);
             } else if (target.classList.contains('stop-btn')) {
-                stopRecording(part, index);
+                stopRecording(part, index, target);
             } else if (target.classList.contains('play-btn')) {
                 playRecording(part, index);
             }
         });
 
         // --- Recording and Upload Logic ---
-
-        async function startRecording(part, index) {
-            if (!navigator.mediaDevices) {
-                showMessage("เบราว์เซอร์นี้ไม่รองรับการอัดเสียง", "error");
+        async function startRecording(part, index, button) {
+            if (mediaRecorder && mediaRecorder.state !== "inactive") {
+                showMessage("กำลังบันทึกเสียงอยู่ กรุณากดหยุดก่อน", "error");
                 return;
             }
+
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                const options = { mimeType: 'audio/mp4', audioBitsPerSecond: 16000 };
-                mediaRecorder = new MediaRecorder(stream, options);
+                audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                const options = { mimeType: 'audio/webm' }; // Changed mimeType for broader browser support
+                mediaRecorder = new MediaRecorder(audioStream, options);
 
                 const audioChunks = [];
                 mediaRecorder.ondataavailable = e => {
@@ -403,8 +400,9 @@
                         audioChunks.push(e.data);
                     }
                 };
+
                 mediaRecorder.onstop = () => {
-                    const blob = new Blob(audioChunks, { type: 'audio/mp4' });
+                    const blob = new Blob(audioChunks, { type: 'audio/webm' });
                     if (!audioBlobs[part]) audioBlobs[part] = {};
                     audioBlobs[part][index] = blob;
 
@@ -421,20 +419,25 @@
                 };
 
                 mediaRecorder.start();
-                document.querySelector(`.start-btn[data-part="${part}"][data-index="${index}"]`).disabled = true;
-                document.querySelector(`.stop-btn[data-part="${part}"][data-index="${index}"]`).disabled = false;
-                document.querySelector(`.play-btn[data-part="${part}"][data-index="${index}"]`).disabled = true;
+                button.disabled = true;
+                const stopBtn = document.querySelector(`.stop-btn[data-part="${part}"][data-index="${index}"]`);
+                stopBtn.disabled = false;
+                const playBtn = document.querySelector(`.play-btn[data-part="${part}"][data-index="${index}"]`);
+                playBtn.disabled = true;
+                showMessage("กำลังอัดเสียง...", "info");
             } catch (err) {
                 console.error("Media recording error:", err);
                 showMessage("ไม่สามารถเข้าถึงไมโครโฟนได้ กรุณาตรวจสอบสิทธิ์", "error");
             }
         }
 
-        function stopRecording(part, index) {
+        function stopRecording(part, index, button) {
             if (mediaRecorder && mediaRecorder.state !== "inactive") {
                 mediaRecorder.stop();
-                document.querySelector(`.start-btn[data-part="${part}"][data-index="${index}"]`).disabled = false;
-                document.querySelector(`.stop-btn[data-part="${part}"][data-index="${index}"]`).disabled = true;
+                audioStream.getTracks().forEach(track => track.stop()); // Stop the microphone access
+                button.disabled = true;
+                const startBtn = document.querySelector(`.start-btn[data-part="${part}"][data-index="${index}"]`);
+                startBtn.disabled = false;
             }
         }
 
@@ -463,25 +466,25 @@
                 const totalSize = Object.values(audioBlobs[partNumber]).reduce((sum, blob) => sum + blob.size, 0);
                 let totalUploaded = 0;
                 
-                const supabaseInsertPromises = [];
-                for (let i = 0; i < currentQuestions.length; i++) {
+                const uploadPromises = currentQuestions.map(async (q, i) => {
                     const blob = audioBlobs[partNumber][i];
-                    const fileName = `${currentUser.id}_part${partNumber}_q${i+1}_${uuidv4()}.mp4`;
+                    const fileName = `${currentUser.id}/part${partNumber}/q${i+1}_${uuidv4()}.webm`;
                     
-                    const { error: uploadError } = await supabase.storage
+                    const { data: uploadData, error: uploadError } = await supabase.storage
                         .from('audios')
-                        .upload(`${currentUser.id}/${fileName}`, blob, {
+                        .upload(fileName, blob, {
                             cacheControl: '3600',
                             upsert: false
                         });
+
                     if (uploadError) { throw uploadError; }
 
                     const { data: { publicUrl } } = supabase.storage
                         .from('audios')
-                        .getPublicUrl(`${currentUser.id}/${fileName}`);
+                        .getPublicUrl(fileName);
 
-                    supabaseInsertPromises.push(supabase
-                        .from('submissions_part1')
+                    const { error: insertError } = await supabase
+                        .from('submissions')
                         .insert([
                             {
                                 user_id: currentUser.id,
@@ -492,21 +495,21 @@
                                 audio_url: publicUrl,
                                 created_at: new Date().toISOString()
                             }
-                        ])
-                    );
+                        ]);
+                    
+                    if (insertError) { throw insertError; }
 
                     totalUploaded += blob.size;
                     const overallProgress = (totalUploaded / totalSize) * 100;
-                    loadingText.textContent = `กำลังอัปโหลดไฟล์ที่ ${i + 1} จาก ${currentQuestions.length}... (${Math.round(overallProgress)}%)`;
                     progressBar.style.width = `${overallProgress}%`;
-                }
+                    loadingText.textContent = `กำลังอัปโหลดไฟล์ที่ ${i + 1} จาก ${currentQuestions.length}... (${Math.round(overallProgress)}%)`;
+                });
+                
+                await Promise.all(uploadPromises);
 
-                const results = await Promise.all(supabaseInsertPromises);
-                const hasError = results.some(res => res.error);
-                if (hasError) { throw new Error('มีข้อผิดพลาดในการบันทึกข้อมูล'); }
                 showMessage(`ส่งไฟล์เสียง Part ${partNumber} เรียบร้อยแล้ว!`, "info");
-
                 return true;
+
             } catch (err) {
                 console.error('เกิดข้อผิดพลาดในการอัปโหลด:', err);
                 showMessage(`เกิดข้อผิดพลาด: ${err.message}`, "error");
@@ -549,18 +552,26 @@
             }
         });
 
-        document.getElementById('submitPart3Btn').addEventListener('click', async () => {
-            const success = await uploadData(3);
-            if (success) {
-                popupTitle.textContent = "แบบทดสอบเสร็จสมบูรณ์!";
-                popupMessage.textContent = "ขอบคุณที่ทำแบบทดสอบครับ!";
-                popup.style.display = 'flex';
-                popupBtn.textContent = "ไปยังหน้าสรุปผล";
-                popupBtn.onclick = () => {
-                    window.location.href = "summary_page.html";
-                };
+     document.getElementById('submitPart3Btn').addEventListener('click', async () => {
+    const success = await uploadData(3);
+    if (success) {
+        // แสดง Pop-up แสดงความยินดี
+        popupTitle.textContent = "แบบทดสอบเสร็จสมบูรณ์!";
+        popupMessage.textContent = "ขอบคุณที่ทำแบบทดสอบครับ! คุณสามารถออกจากระบบได้เลย";
+        popup.style.display = 'flex';
+        
+        // เปลี่ยนปุ่มใน Pop-up เป็นปุ่ม Logout
+        popupBtn.textContent = "ออกจากระบบ";
+        popupBtn.onclick = async () => {
+            const { error } = await supabase.auth.signOut();
+            if (error) {
+                console.error("Logout Error:", error.message);
+                showMessage("เกิดข้อผิดพลาดในการออกจากระบบ", "error");
+            } else {
+                window.location.href = "login_page.html"; // หรือหน้าที่คุณต้องการให้ไปหลัง Logout
             }
-        });
+        };
+
     </script>
 </body>
 </html>
