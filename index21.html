@@ -26,9 +26,6 @@
             padding: 25px;
             margin-bottom: 25px;
         }
-        .question {
-            margin-bottom: 20px;
-        }
         .question h3 {
             color: #0059b3;
             margin-bottom: 10px;
@@ -91,6 +88,9 @@
             color: #666;
             margin-top: 50px;
         }
+        .hidden {
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -104,6 +104,10 @@
     <button id="submitBtn" class="hidden">ส่งคำตอบ</button>
 
     <div id="result"></div>
+    
+    <a href="index 3.html">
+        <button style="margin-top: 20px;">กลับสู่หน้าหลัก</button>
+    </a>
 
     <script type="module">
         import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
@@ -114,7 +118,12 @@
 
         let currentUser = null;
 
-        const questions = [
+        const { data: { user }, error } = await supabase.auth.getUser();
+        if (user) {
+            currentUser = user;
+        }
+
+            const questions = [
             { q: "1. ข้อใดคือเป้าหมายหลักของการขายประกันผ่านโทรศัพท์", a: "B", choices: ["สร้างความสัมพันธ์", "ปิดการขาย", "ให้ข้อมูลเท่านั้น", "สอบถามความสนใจ"] },
             { q: "2. สิ่งที่ควรทำเมื่อเริ่มโทรหาลูกค้าคืออะไร", a: "A", choices: ["แนะนำตัวและชื่อบริษัท", "ถามคำถามทันที", "อธิบายผลิตภัณฑ์เลย", "ถามถึงรายได้ลูกค้า"] },
             { q: "3. น้ำเสียงที่เหมาะสมในการโทรคือแบบใด", a: "D", choices: ["จริงจัง", "เร่งรีบ", "พูดเร็ว", "ชัดเจนและเป็นมิตร"] },
@@ -165,152 +174,86 @@
             { q: "48. ควรตอบคำถามลูกค้าอย่างไรเมื่อไม่ทราบคำตอบ", a: "B", choices: ["ตอบมั่วไปก่อน", "ขอเวลาตรวจสอบและติดต่อกลับ", "หลีกเลี่ยงไม่ตอบ", "วางสาย"] },
             { q: "49. การทำความเข้าใจความต้องการลูกค้าช่วยอะไร", a: "D", choices: ["ทำให้เสียเวลา", "ทำให้ลูกค้าเบื่อ", "ไม่มีผล", "เสนอแผนที่ตรงกับลูกค้า"] },
             { q: "50. ข้อใดคือสิ่งที่ควรจดบันทึกหลังโทรหาลูกค้า", a: "C", choices: ["จำนวนเพื่อนของลูกค้า", "ที่อยู่บ้าน", "ความต้องการและข้อสงสัยของลูกค้า", "วันเกิดของตัวแทน"] }
-        ];
+            ];
 
-        const form = document.getElementById("quizForm");
-        const submitBtn = document.getElementById("submitBtn");
-        const resultDiv = document.getElementById("result");
-        const loadingDiv = document.getElementById("loading");
+            const quizForm = document.getElementById('quizForm');
+            const submitBtn = document.getElementById('submitBtn');
+            const loading = document.getElementById('loading');
+            const resultDiv = document.getElementById('result');
 
-        // ตรวจสอบสถานะการเข้าสู่ระบบเมื่อหน้าเว็บโหลด
-        async function checkSessionAndRenderQuiz() {
-            const { data: { session }, error } = await supabase.auth.getSession();
-            if (error || !session) {
-                alert("ไม่พบข้อมูลผู้ใช้ กรุณาเข้าสู่ระบบก่อน");
-                window.location.href = 'index3.html';
-            } else {
-                currentUser = session.user;
-                renderQuiz();
-            }
-        }
-        
-        // สร้างคำถามและตัวเลือกบนหน้าเว็บ
-        function renderQuiz() {
-            questions.forEach((item, index) => {
-                const questionContainer = document.createElement("div");
-                questionContainer.className = "question-container";
-                
-                const questionDiv = document.createElement("div");
-                questionDiv.className = "question";
-                
-                const questionTitle = document.createElement("h3");
-                questionTitle.textContent = `${index + 1}. ${item.q}`;
-                questionDiv.appendChild(questionTitle);
-                
-                const choicesList = document.createElement("ul");
-                choicesList.className = "choices";
-                
-                // สุ่มลำดับตัวเลือก
-                const choicesWithLetters = item.choices.map((choice, i) => ({
-                    letter: String.fromCharCode(65 + i),
-                    text: choice
-                }));
+            function renderQuiz() {
+                loading.classList.add('hidden');
+                quizForm.classList.remove('hidden');
+                submitBtn.classList.remove('hidden');
 
-                shuffleArray(choicesWithLetters);
+                questions.forEach((q, index) => {
+                    const container = document.createElement('div');
+                    container.className = 'question-container';
 
-                choicesWithLetters.forEach(choice => {
-                    const li = document.createElement("li");
-                    li.innerHTML = `
-                        <label>
-                            <input type="radio" name="q${index}" value="${choice.letter}" required />
-                            ${choice.letter}. ${choice.text}
-                        </label>
-                    `;
-                    choicesList.appendChild(li);
+                    const questionTitle = document.createElement('h3');
+                    questionTitle.textContent = q.q;
+                    container.appendChild(questionTitle);
+
+                    const ul = document.createElement('ul');
+                    ul.className = 'choices';
+
+                    q.choices.forEach((choice, i) => {
+                        const li = document.createElement('li');
+                        const label = document.createElement('label');
+                        const input = document.createElement('input');
+                        input.type = 'radio';
+                        input.name = `question-${index}`;
+                        input.value = String.fromCharCode(65 + i);
+                        label.appendChild(input);
+                        label.appendChild(document.createTextNode(`${input.value}. ${choice}`));
+                        li.appendChild(label);
+                        ul.appendChild(li);
+                    });
+
+                    container.appendChild(ul);
+                    quizForm.appendChild(container);
                 });
-                
-                questionDiv.appendChild(choicesList);
-                questionContainer.appendChild(questionDiv);
-                form.appendChild(questionContainer);
+            }
+
+            renderQuiz();
+
+            submitBtn.addEventListener('click', async () => {
+                let score = 0;
+                const answers = [];
+
+                questions.forEach((q, index) => {
+                    const selected = document.querySelector(`input[name="question-${index}"]:checked`);
+                    const answer = selected ? selected.value : null;
+                    answers.push(answer);
+                    if (answer === q.a) score++;
+                });
+
+                const totalQuestions = questions.length;
+
+                const { error } = await supabase
+                    .from('quiz_results')
+                    .insert([
+                        {
+                            user_id: currentUser?.id || null,
+                            user_email: currentUser?.email || null,
+                            score: score,
+                            total_questions: totalQuestions,
+                            answers: answers
+                        }
+                    ]);
+
+                if (error) {
+                    console.error('Error saving quiz result:', error);
+                    resultDiv.textContent = 'เกิดข้อผิดพลาดในการบันทึกผล กรุณาลองใหม่';
+                    resultDiv.style.backgroundColor = '#ffd1d1';
+                    resultDiv.style.color = '#900';
+                } else {
+                    resultDiv.textContent = `คุณได้คะแนน ${score} จาก ${totalQuestions} ข้อ`;
+                }
+
+                resultDiv.style.display = 'block';
+                submitBtn.disabled = true;
             });
-            
-            loadingDiv.style.display = 'none';
-            form.classList.remove("hidden");
-            submitBtn.classList.remove("hidden");
-        }
-
-        // ฟังก์ชันสุ่มลำดับใน Array
-        function shuffleArray(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-        }
-
-        // ตรวจสอบคำตอบและบันทึกผล
-        async function gradeAndSaveQuiz(event) {
-            event.preventDefault();
-
-            if (!currentUser) {
-                alert("ไม่พบข้อมูลผู้ใช้ กรุณาเข้าสู่ระบบใหม่");
-                window.location.href = 'index3.html';
-                return;
-            }
-            
-            let score = 0;
-            const answers = {};
-
-            // วนลูปเพื่อตรวจคำตอบ
-            for (let i = 0; i < questions.length; i++) {
-                const selected = document.querySelector(`input[name="q${i}"]:checked`);
-                if (!selected) {
-                    alert("กรุณาตอบคำถามให้ครบทุกข้อก่อนส่งคำตอบ");
-                    return;
-                }
-                const isCorrect = selected.value === questions[i].a;
-                answers[`q${i + 1}`] = {
-                    user_answer: selected.value,
-                    correct_answer: questions[i].a,
-                    is_correct: isCorrect
-                };
-                if (isCorrect) {
-                    score++;
-                }
-            }
-
-            // บันทึกผลคะแนนและคำตอบลงใน Supabase Database
-            const { data, error } = await supabase
-                .from('quiz_results')
-                .insert([
-                    {
-                        user_id: currentUser.id,
-                        user_email: currentUser.email,
-                        score: score,
-                        total_questions: questions.length,
-                        answers: answers
-                    }
-                ]);
-
-            if (error) {
-                console.error('Error saving quiz result:', error);
-                alert('เกิดข้อผิดพลาดในการบันทึกผล กรุณาลองใหม่อีกครั้ง');
-                return;
-            }
-
-            const passScore = 4;
-            let message = '';
-            if (score >= passScore) {
-                message = `คุณได้คะแนน ${score} จาก ${questions.length} คะแนน ยินดีด้วย คุณผ่านเกณฑ์แล้ว!`;
-                resultDiv.style.backgroundColor = '#d1ffd1';
-                resultDiv.style.color = '#005900';
-            } else {
-                message = `คุณได้คะแนน ${score} จาก ${questions.length} คะแนน ซึ่งไม่ผ่านเกณฑ์ (${passScore} ข้อ)`;
-                resultDiv.style.backgroundColor = '#ffd1d1';
-                resultDiv.style.color = '#d9534f';
-            }
-            
-            resultDiv.textContent = message;
-            resultDiv.style.display = 'block';
-
-            // ซ่อนปุ่มและฟอร์มหลังจากส่งคำตอบ
-            form.style.display = 'none';
-            submitBtn.style.display = 'none';
-        }
-
-        submitBtn.addEventListener("click", gradeAndSaveQuiz);
-        
-        // เริ่มต้นการทำงาน
-        checkSessionAndRenderQuiz();
     </script>
 </body>
 </html>
