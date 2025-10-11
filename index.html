@@ -1,160 +1,142 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ลงทะเบียนเข้าสู่ระบบ</title>
-    <style>
-        body {
-            font-family: 'Tahoma', sans-serif;
-            background: #f0f2f5;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ลงทะเบียนเข้าสู่ระบบ</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(-45deg, #6ec6ff, #b388ff, #81d4fa, #ce93d8);
+      background-size: 400% 400%;
+      animation: gradientBG 15s ease infinite;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    @keyframes gradientBG {
+      0% {background-position: 0% 50%;}
+      50% {background-position: 100% 50%;}
+      100% {background-position: 0% 50%;}
+    }
+
+    .card {
+      border-radius: 1rem;
+      animation: fadeInUp 1s ease;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .form-control:focus {
+      box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+
+    .btn-success {
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .btn-success:hover {
+      transform: scale(1.03);
+      box-shadow: 0 0 10px rgba(40, 167, 69, 0.5);
+    }
+
+    #messageBox {
+      transition: all 0.3s ease;
+    }
+  </style>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+    const supabaseUrl = 'https://wzwyotzzxycqfwercakh.supabase.co';
+    const supabaseKey = 'YOUR_ANON_KEY';
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    function showMessage(text, isError = false) {
+      const messageBox = document.getElementById('messageBox');
+      messageBox.textContent = text;
+      messageBox.style.display = 'block';
+      messageBox.className = isError ? 'alert alert-danger mt-3' : 'alert alert-success mt-3';
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const form = document.getElementById('registerForm');
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const name = document.getElementById('name').value;
+        const email = document.getElementById('email').value;
+        const department = document.getElementById('department').value;
+
+        if (!email) {
+          showMessage('กรุณากรอกอีเมล', true);
+          return;
         }
-        .container {
-            background: #fff;
-            padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            width: 100%;
-            max-width: 400px;
-            text-align: center;
+
+        showMessage('กำลังตรวจสอบ...', false);
+
+        try {
+          const { data: userData } = await supabase
+            .from('users')
+            .select('*')
+            .eq('email', email)
+            .single();
+
+          if (userData) {
+            showMessage('เข้าสู่ระบบสำเร็จ! กำลังนำทาง...', false);
+            setTimeout(() => window.location.href = "index2.html", 1500);
+            return;
+          }
+
+          await supabase.from('users').insert([{ email, full_name: name, department }]);
+          showMessage('ลงทะเบียนสำเร็จ! กำลังนำทาง...', false);
+          setTimeout(() => window.location.href = "index4.html", 1500);
+
+        } catch (err) {
+          console.error(err);
+          showMessage(`เกิดข้อผิดพลาด: ${err.message}`, true);
         }
-        h2 {
-            color: #004085;
-            margin-bottom: 25px;
-        }
-        label {
-            display: block;
-            text-align: left;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #555;
-        }
-        input[type="text"],
-        input[type="email"] {
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 20px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            box-sizing: border-box;
-            transition: border-color 0.3s ease;
-        }
-        input[type="text"]:focus,
-        input[type="email"]:focus {
-            border-color: #007bff;
-            outline: none;
-        }
-        button {
-            width: 100%;
-            padding: 15px;
-            border: none;
-            background-color: #28a745;
-            color: white;
-            font-size: 1.1em;
-            font-weight: bold;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-        button:hover {
-            background-color: #218838;
-        }
-        #messageBox {
-            margin-top: 20px;
-            padding: 15px;
-            border-radius: 8px;
-            display: none;
-        }
-    </style>
+      });
+    });
+  </script>
 </head>
 <body>
-    <div class="container">
-        <h2>ลงทะเบียนผู้เข้าสอบ</h2>
-        <form id="loginForm">
-            <label for="name">ชื่อ-นามสกุล:</label>
-            <input type="text" id="name" name="name" required><br>
-            <label for="email">อีเมล:</label>
-            <input type="email" id="email" name="email" required><br>
-            <label for="department">แผนก:</label>
-            <input type="text" id="department" name="department"><br><br>
-            <button type="submit">เข้าสู่ระบบ</button>
-        </form>
-        <div id="messageBox"></div>
+  <div class="container d-flex justify-content-center align-items-center vh-100">
+    <div class="card shadow-lg p-4" style="width: 100%; max-width: 420px;">
+      <h3 class="text-center mb-4 text-primary"><i class="bi bi-person-plus-fill me-2"></i>ลงทะเบียนผู้เข้าสอบ</h3>
+      <form id="registerForm">
+        <div class="mb-3">
+          <label for="name" class="form-label">ชื่อ-นามสกุล:</label>
+          <input type="text" id="name" name="name" class="form-control" required>
+        </div>
+        <div class="mb-3">
+          <label for="email" class="form-label">อีเมล:</label>
+          <input type="email" id="email" name="email" class="form-control" required>
+        </div>
+        <div class="mb-3">
+          <label for="department" class="form-label">แผนก:</label>
+          <input type="text" id="department" name="department" class="form-control">
+        </div>
+        <button type="submit" class="btn btn-success w-100"><i class="bi bi-box-arrow-in-right me-2"></i>เข้าสู่ระบบ</button>
+      </form>
+      <div id="messageBox" style="display:none;"></div>
     </div>
-
-    <script type="module">
-        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
-
-        // 1. ตั้งค่า Supabase Client
-         const supabaseUrl = 'https://wzwyotzzxycqfwercakh.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6d3lvdHp6eHljcWZ3ZXJjYWtoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNTg3MTMsImV4cCI6MjA3MjYzNDcxM30.lgiAf9oBUqsaWGb3u_80wuoKAODQHE_lIBxpGumhrno';
-        const supabase = createClient(supabaseUrl, supabaseKey);
-
-        const form = document.getElementById('loginForm');
-        const messageBox = document.getElementById('messageBox');
-
-        function showMessage(text, isError = false) {
-            messageBox.textContent = text;
-            messageBox.style.display = 'block';
-            messageBox.style.backgroundColor = isError ? '#f8d7da' : '#d1e7dd';
-            messageBox.style.color = isError ? '#721c24' : '#0f5132';
-        }
-
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            const name = document.getElementById('name').value;
-            const email = document.getElementById('email').value;
-            const department = document.getElementById('department').value;
-            
-            showMessage('กำลังประมวลผล...', false);
-
-            try {
-                // ตรวจสอบว่ามีผู้ใช้คนนี้อยู่แล้วหรือไม่
-                const { data: userData, error: userError } = await supabase
-                    .from('profiles') // สมมติว่าคุณมีตาราง 'profiles' เพื่อเก็บข้อมูลเพิ่มเติม
-                    .select('*')
-                    .eq('email', email)
-                    .single();
-
-                if (userData) {
-                    // ถ้ามีผู้ใช้คนนี้อยู่แล้ว ให้แสดงข้อความและไม่ต้องทำอะไรต่อ
-                    showMessage('อีเมลนี้ถูกใช้แล้ว กรุณาใช้อีเมลอื่น', true);
-                    return;
-                }
-
-                // 2. ใช้ signUp เพื่อสร้าง User และบันทึกข้อมูล
-                const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-                    email: email,
-                    // สร้างรหัสผ่านแบบสุ่ม เพื่อให้ไม่ซ้ำกัน
-                    password: Math.random().toString(36).slice(-8), 
-                    options: {
-                        data: {
-                            full_name: name,
-                            department: department
-                        }
-                    }
-                });
-
-                if (signUpError) {
-                    showMessage(`เกิดข้อผิดพลาดในการลงทะเบียน: ${signUpError.message}`, true);
-                } else {
-                    showMessage('ลงทะเบียนสำเร็จ! กำลังนำทาง...', false);
-                    // 3. หลังจากลงทะเบียนสำเร็จ ให้ส่งผู้ใช้ไปหน้าถัดไปทันที
-                    setTimeout(() => {
-                        window.location.href = "index2.html";
-                    }, 1500);
-                }
-            } catch (err) {
-                console.error(err);
-                showMessage(`เกิดข้อผิดพลาด: ${err.message}`, true);
-            }
-        });
-    </script>
+  </div>
 </body>
 </html>
+
+
+
+
