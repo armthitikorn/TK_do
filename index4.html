@@ -3,597 +3,589 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>แบบทดสอบการบันทึกเสียง (Anonymous)</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <title>แบบทดสอบการขายประกัน: การขายประกันชีวิตและสุขภาพทางโทรศัพท์</title>
     <style>
-        /* Modern CSS Styles */
         :root {
             --primary-color: #007bff; /* Blue */
-            --secondary-color: #6c757d; /* Gray */
             --success-color: #28a745; /* Green */
             --danger-color: #dc3545; /* Red */
-            --background-color: #f8f9fa;
-            --card-background: #ffffff;
-            --border-radius: 8px;
-            --shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            --info-color: #17a2b8; /* Teal */
+            --background-color: #f0f2f5;
+            --card-background: #fff;
+            --font-color: #333;
+            --border-radius: 12px;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--background-color);
-            margin: 0;
+            background: var(--background-color);
             padding: 20px;
-            color: #343a40;
+            color: var(--font-color);
             display: flex;
             flex-direction: column;
             align-items: center;
-            min-height: 100vh;
         }
-
         .container {
-            width: 100%;
             max-width: 800px;
-            margin: auto;
-        }
-
-        header {
-            background-color: var(--card-background);
-            padding: 20px 30px;
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
-            margin-bottom: 20px;
             width: 100%;
-        }
-
-        h1 {
-            color: var(--primary-color);
-            margin-bottom: 5px;
-            font-size: 1.8rem;
-        }
-
-        #user-info {
-            font-size: 0.9rem;
-            color: var(--secondary-color);
-        }
-
-        .card {
-            background-color: var(--card-background);
-            padding: 25px;
+            background: var(--card-background);
+            padding: 30px;
             border-radius: var(--border-radius);
             box-shadow: var(--shadow);
             margin-bottom: 20px;
             transition: all 0.3s ease;
         }
-
-        .card-header {
-            font-size: 1.5rem;
-            font-weight: 600;
+        h1 {
+            text-align: center;
+            color: var(--primary-color);
             margin-bottom: 15px;
-            color: #495057;
             border-bottom: 2px solid #e9ecef;
             padding-bottom: 10px;
         }
-
-        .question-item {
+        .user-info {
+            text-align: center;
+            font-size: 1em;
+            color: #6c757d;
+            margin-bottom: 25px;
+            padding: 10px;
+            border: 1px dashed #ced4da;
+            border-radius: 6px;
+        }
+        .question {
+            background: #f8f9fa;
+            border: 1px solid #e2e6ea;
+            border-radius: 8px;
+            padding: 20px;
             margin-bottom: 20px;
-            padding: 15px;
-            border: 1px solid #dee2e6;
-            border-radius: var(--border-radius);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
         }
-
-        .question-text {
-            font-size: 1.1rem;
+        .question p {
+            font-weight: 600;
+            color: #495057;
             margin-bottom: 15px;
-            line-height: 1.6;
+            font-size: 1.05em;
         }
-
-        .controls {
+        .control-buttons {
             display: flex;
+            flex-wrap: wrap;
             gap: 10px;
             align-items: center;
         }
-
         button {
-            padding: 10px 15px;
+            padding: 10px 18px;
             border: none;
-            border-radius: 50px; /* Pill shape for modern look */
+            border-radius: 50px; /* Modern Pill Shape */
             cursor: pointer;
-            font-size: 1rem;
+            font-size: 0.95em;
             font-weight: 600;
-            transition: background-color 0.3s, transform 0.1s;
+            transition: background-color 0.3s ease, transform 0.2s;
         }
-
+        button:hover {
+            transform: translateY(-2px);
+        }
         button:active {
-            transform: scale(0.98);
+            transform: translateY(0);
         }
-
-        .btn-primary {
-            background-color: var(--primary-color);
-            color: white;
+        button:disabled {
+            background-color: #e9ecef !important;
+            color: #adb5bd !important;
+            cursor: not-allowed;
+            transform: none;
         }
-        .btn-primary:hover { background-color: #0056b3; }
-
-        .btn-success {
-            background-color: var(--success-color);
-            color: white;
-        }
-        .btn-success:hover { background-color: #1e7e34; }
-
-        .btn-danger {
-            background-color: var(--danger-color);
-            color: white;
-        }
-        .btn-danger:hover { background-color: #bd2130; }
-
-        .btn-secondary {
-            background-color: var(--secondary-color);
-            color: white;
-        }
-        .btn-secondary:hover { background-color: #5a6268; }
-
-        .progress-bar-container {
-            height: 8px;
-            background-color: #e9ecef;
-            border-radius: 4px;
-            margin-top: 15px;
-            overflow: hidden;
-        }
-
-        .progress-bar {
-            height: 100%;
-            width: 0;
-            background-color: var(--success-color);
-            transition: width 0.4s ease;
-        }
-
-        .hidden {
-            display: none !important;
-        }
-
-        .status-text {
-            margin-left: 10px;
-            font-size: 0.9rem;
-            color: var(--danger-color);
-        }
-
-        /* Modal/Popup Styling */
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
+        .start-btn { background-color: var(--success-color); color: white; }
+        .stop-btn { background-color: var(--danger-color); color: white; }
+        .play-btn { background-color: var(--primary-color); color: white; }
+        .submit-btn {
             width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
+            padding: 15px;
+            margin-top: 30px;
+            background-color: var(--info-color); /* Used info color for Submit */
+            color: white;
+            font-size: 1.2em;
+            font-weight: bold;
+            border-radius: 8px; /* Square edges for submit button */
         }
-
-        .modal-content {
-            background-color: var(--card-background);
-            padding: 30px;
-            border-radius: var(--border-radius);
+        .message-box {
+            position: fixed;
+            top: 20px; /* Change from center to top for modern notification */
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #d1e7dd;
+            color: #0f5132;
+            border: 1px solid #badbcc;
+            padding: 15px 25px;
+            border-radius: 8px;
             box-shadow: var(--shadow);
-            text-align: center;
-            max-width: 400px;
-            animation: fadeIn 0.3s;
+            display: none;
+            z-index: 1000;
+            transition: opacity 0.3s ease;
+            font-weight: 500;
         }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
+        .file-size {
+            margin-left: 10px;
+            font-size: 0.9em;
+            color: #6c757d;
         }
-
-        .modal-content h2 {
-            color: var(--success-color);
-            margin-bottom: 20px;
+        /* Loading Overlay and Pop-up styles remain generally the same, but integrate with CSS variables */
+        #loadingOverlay {
+            background: rgba(255, 255, 255, 0.9); /* Slightly less transparent */
+        }
+        .loading-spinner {
+            border-top: 4px solid var(--primary-color);
+        }
+        .progress-bar {
+            background-color: var(--success-color);
+        }
+        .popup-content {
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        .popup-content button {
+            background-color: var(--primary-color);
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>🎤 ระบบบันทึกเสียงแบบทดสอบ</h1>
-            <p id="user-info">กำลังตรวจสอบผู้ใช้งาน...</p>
-        </header>
-
-        <div id="progress-container" class="card hidden">
-            <div class="card-header">กำลังอัปโหลดข้อมูล...</div>
-            <div class="progress-bar-container">
-                <div id="upload-progress" class="progress-bar" style="width: 0%;"></div>
-            </div>
-            <p id="progress-status" style="margin-top: 10px; text-align: center; font-weight: 500;"></p>
-        </div>
-
-        <div id="part1" class="card">
-            <div class="card-header">ส่วนที่ 1: คำถามทั่วไป</div>
-            <div id="part1-questions">
-                </div>
-            <button id="submitPart1Btn" class="btn-primary" disabled>ไปยังส่วนที่ 2</button>
-        </div>
-
-        <div id="part2" class="card hidden">
-            <div class="card-header">ส่วนที่ 2: การเล่าเรื่อง</div>
-            <div id="part2-questions">
-                </div>
-            <button id="submitPart2Btn" class="btn-primary" disabled>ไปยังส่วนที่ 3</button>
-        </div>
-
-        <div id="part3" class="card hidden">
-            <div class="card-header">ส่วนที่ 3: การออกเสียงคำศัพท์</div>
-            <div id="part3-questions">
-                </div>
-            <button id="submitPart3Btn" class="btn-success" disabled>สิ้นสุดและส่งข้อมูล</button>
+    <div id="messageBox" class="message-box"></div>
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-spinner"></div>
+        <p id="loadingText">กำลังอัปโหลด... กรุณารอสักครู่</p>
+        <div class="upload-progress" style="width: 200px;">
+            <div class="progress-bar" id="progressBar"></div>
         </div>
     </div>
 
-    <div id="final-modal" class="modal hidden">
-        <div class="modal-content">
-            <h2>✅ การทดสอบเสร็จสมบูรณ์</h2>
-            <p>ขอบคุณที่เข้าร่วมการทดสอบ ข้อมูลของคุณถูกส่งไปยังระบบเรียบร้อยแล้ว</p>
-            <button id="closeWindowBtn" class="btn-secondary" style="margin-top: 15px;">ปิดหน้านี้</button>
+    <div id="popup" class="popup-overlay">
+        <div class="popup-content">
+            <h2 id="popupTitle"></h2>
+            <p id="popupMessage"></p>
+            <button id="popupBtn">ดำเนินการต่อ</button>
         </div>
     </div>
+    
+    <div id="part1" class="container">
+        <h1>Part 1: การเสนอขายประกันชีวิต</h1>
+        <div class="user-info">
+            <b>ชื่อผู้ทำแบบทดสอบ:</b> <span id="userNameDisplay">กำลังโหลด...</span>
+        </div>
+        <div id="part1Questions"></div>
+        <button id="submitPart1Btn" class="submit-btn" disabled>
+            <i class="fas fa-upload"></i> ส่งไฟล์เสียง Part 1 & ไปสถานการณ์ถัดไป
+        </button>
+    </div>
 
-    <script>
-        // =================================================================
-        // 1. SUPABASE SETUP & ANONYMOUS ID GENERATION
-        // =================================================================
+    <div id="part2" class="container" style="display: none;">
+        <h1>Part 2: คำถามเกี่ยวกับประกันสุขภาพ</h1>
+        <div id="part2Questions"></div>
+        <button id="submitPart2Btn" class="submit-btn" disabled>
+            <i class="fas fa-upload"></i> ส่งไฟล์เสียง Part 2 & ไปสถานการณ์ถัดไป
+        </button>
+    </div>
 
-        // แทนที่ด้วยคีย์ของคุณ
-        const SUPABASE_URL = 'YOUR_SUPABASE_URL'; 
-        const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+    <div id="part3" class="container" style="display: none;">
+        <h1>Part 3: การจัดการข้อโต้แย้งหลังการขาย</h1>
+        <div id="part3Questions"></div>
+        <button id="submitPart3Btn" class="submit-btn" disabled>
+            <i class="fas fa-upload"></i> ส่งไฟล์เสียง Part 3 & เสร็จสิ้น
+        </button>
+    </div>
 
-        // Initialize Supabase Client
-        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-            auth: {
-                persistSession: false, // ไม่ต้องเก็บ session เพราะใช้ anonymous
-            },
-        });
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+        import { v4 as uuidv4 } from 'https://cdn.jsdelivr.net/npm/uuid@8.3.2/dist/esm-browser/index.js';
 
-        // Function to generate a simple UUID (v4-like)
-        function simpleUUID() {
-            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-                var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-                return v.toString(16);
-            });
-        }
+        // --- Supabase Configuration ---
+        const supabaseUrl = 'https://wzwyotzzxycqfwercakh.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6d3lvdHp6eHljcWZ3ZXJjYWtoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNTg3MTMsImV4cCI6MjA3MjYzNDcxM30.lgiAf9oBUqsaWGb3u_80wuoKAODQHE_lIBxpGumhrno';
+        const supabase = createClient(supabaseUrl, supabaseKey);
 
-        // Key name for storing the ID in localStorage
-        const ANONYMOUS_ID_KEY = 'anon_session_id';
-
-        // Function to get or create the anonymous session ID
-        function getOrCreateAnonymousId() {
-            let anonId = localStorage.getItem(ANONYMOUS_ID_KEY);
-            if (!anonId) {
-                anonId = simpleUUID(); // Generate new ID
-                localStorage.setItem(ANONYMOUS_ID_KEY, anonId); // Store it
-                console.log("New Anonymous Session ID created and stored:", anonId);
-            } else {
-                console.log("Existing Anonymous Session ID loaded:", anonId);
-            }
-            return anonId;
-        }
-
-        // Global Anonymous Variables
-        const CURRENT_ANONYMOUS_ID = getOrCreateAnonymousId(); 
-        const CURRENT_ANONYMOUS_EMAIL = `${CURRENT_ANONYMOUS_ID}@anonymous.com`; 
-        const CURRENT_ANONYMOUS_NAME = 'ผู้ใช้งานทั่วไป (Anonymous)'; 
-        
-        // กำหนดค่า user และ userName สำหรับใช้ในตรรกะของโปรแกรม
-        const user = { id: CURRENT_ANONYMOUS_ID, email: CURRENT_ANONYMOUS_EMAIL }; 
-        const userName = CURRENT_ANONYMOUS_NAME;
-
-        // =================================================================
-        // 2. STATE MANAGEMENT & DATA STRUCTURES
-        // =================================================================
-
-        let currentPart = 1;
+        // --- Global variables and DOM elements ---
+        let audioBlobs = {};
         let mediaRecorder;
-        let audioBlobs = [];
-        let isRecording = false;
+        let currentUser = null;
+        let currentPartIndex = 1;
+        let audioStream; 
+        let isRecording = false; // Added state flag
 
+        // Your original data structure (Preserved)
         const parts = {
             1: {
                 questions: [
-                    "แนะนำตัวคุณเองสั้นๆ",
-                    "อธิบายว่าคุณทำอะไรในวันหยุดสุดสัปดาห์ที่ผ่านมา",
-                    "พูดถึงอาหารที่คุณชอบมากที่สุดและเหตุผล"
+                    "ไม่สนใจครับ/ค่ะ", "ทำประกันไว้เยอะแล้วครับ/ค่ะ", "ส่งเอกสารมาให้ดูก่อนถ้าสนใจจะติดต่อกลับครับ/ค่ะ",
+                    "เอาข้อมูลมาจากไหนครับ/ค่ะ", "ทำงานอยู่ไม่ว่างครับ/ค่ะ"
                 ],
-                blobs: []
+                domId: 'part1Questions'
             },
             2: {
                 questions: [
-                    "ให้คุณเล่าเรื่องสั้นๆ หรือนิทานที่คุณรู้จัก",
-                    "อธิบายกระบวนการทำอาหารที่คุณทำเป็นประจำ"
+                    "เบี้ยประกันจะเพิ่มขึ้นทุกปีไหม", "แผนประกันนี้ครอบคลุมค่ารักษาพยาบาลอะไรบ้าง",
+                    "มีวงเงินค่ารักษาพยาบาลสูงสุดเท่าไหร่", "ถ้าเข้าโรงพยาบาล จะต้องสำรองจ่ายก่อนไหม",
+                    "ครอบคลุมโรคเรื้อรังหรือโรคที่เป็นมาก่อนทำประกันหรือไม่", "มีค่าใช้จ่ายส่วนแรก (Deductible) หรือไม่",
+                    "สามารถเลือกโรงพยาบาลได้ตามต้องการเลยไหม", "ถ้าเกิดเจ็บป่วยฉุกเฉินในต่างประเทศจะเบิกได้ไหม",
+                    "การเคลมประกันต้องทำอย่างไรบ้าง", "ระยะเวลารอคอย (Waiting Period) ของกรมธรรม์นี้คืออะไร"
                 ],
-                blobs: []
+                domId: 'part2Questions'
             },
             3: {
                 questions: [
-                    "ออกเสียงคำว่า 'Synchronization'",
-                    "ออกเสียงคำว่า 'Entrepreneurship'",
-                    "ออกเสียงคำว่า 'Consciousness'"
+                    "ขอคิดดูก่อน", "ขอไปปรึกษาครอบครัวก่อน", "ตอนนี้ยังไม่สะดวกเรื่องการเงิน", "เบี้ยประกันแพงเกินไป",
+                    "มีประกันอยู่แล้ว", "ไม่แน่ใจว่าจะได้รับความคุ้มครองจริงหรือไม่", "ทำไมต้องรีบตัดสินใจวันนี้",
+                    "ไม่ค่อยมั่นใจในบริษัทประกัน", "กลัวขั้นตอนการเคลมจะยุ่งยาก", "ขอเอกสารไปอ่านก่อน"
                 ],
-                blobs: []
+                domId: 'part3Questions'
             }
         };
 
-        // =================================================================
-        // 3. MEDIA RECORDER FUNCTIONS
-        // =================================================================
+        const userNameDisplay = document.getElementById("userNameDisplay");
+        const loadingOverlay = document.getElementById("loadingOverlay");
+        const loadingText = document.getElementById("loadingText");
+        const progressBar = document.getElementById("progressBar");
+        const messageBox = document.getElementById('messageBox');
+        const popup = document.getElementById('popup');
+        const popupTitle = document.getElementById('popupTitle');
+        const popupMessage = document.getElementById('popupMessage');
+        const popupBtn = document.getElementById('popupBtn');
+        const part1Div = document.getElementById('part1');
+        const part2Div = document.getElementById('part2');
+        const part3Div = document.getElementById('part3');
 
-        async function startRecording(questionIndex) {
+        // --- Utility Functions ---
+        function showMessage(text, type = 'info') {
+            messageBox.textContent = text;
+            messageBox.style.display = 'block';
+            if (type === 'error') {
+                messageBox.style.backgroundColor = '#f8d7da';
+                messageBox.style.color = '#721c24';
+            } else {
+                messageBox.style.backgroundColor = '#d1e7dd';
+                messageBox.style.color = '#0f5132';
+            }
+            setTimeout(() => {
+                messageBox.style.display = 'none';
+            }, 3000);
+        }
+
+        function checkSubmissionReady(partIndex) {
+            const currentQuestions = parts[partIndex].questions;
+            const allRecorded = currentQuestions.every((_, i) => audioBlobs[partIndex] && audioBlobs[partIndex][i]);
+            document.getElementById(`submitPart${partIndex}Btn`).disabled = !allRecorded;
+        }
+
+        function updateButtonStates(part, index, isRecordingNow = false, hasBlob = false) {
+            const startBtn = document.querySelector(`.start-btn[data-part="${part}"][data-index="${index}"]`);
+            const stopBtn = document.querySelector(`.stop-btn[data-part="${part}"][data-index="${index}"]`);
+            const playBtn = document.querySelector(`.play-btn[data-part="${part}"][data-index="${index}"]`);
+
+            // Disable all buttons in the current part if one is recording or playing
+            const currentPartBtns = document.querySelectorAll(`#part${part}Questions button`);
+            const isPlaying = playBtn && playBtn.textContent.includes('หยุดเล่น');
+
+            currentPartBtns.forEach(btn => btn.disabled = isRecordingNow || isPlaying);
+            
+            // Re-enable/Set state for the current button set
+            if (isRecordingNow) {
+                if (startBtn) startBtn.disabled = true;
+                if (stopBtn) stopBtn.disabled = false;
+                if (playBtn) playBtn.disabled = true;
+            } else {
+                if (startBtn) startBtn.disabled = !isPlaying;
+                if (stopBtn) stopBtn.disabled = true;
+                if (playBtn) playBtn.disabled = !(hasBlob || audioBlobs[part]?.[index]) || isPlaying;
+            }
+        }
+        
+        // --- UI Rendering ---
+        function renderQuestions(part) {
+            const container = document.getElementById(part.domId);
+            container.innerHTML = '';
+            part.questions.forEach((q, i) => {
+                const div = document.createElement("div");
+                div.className = "question";
+                const hasBlob = audioBlobs[currentPartIndex] && audioBlobs[currentPartIndex][i];
+                const fileSizeText = hasBlob ? `ขนาดไฟล์: ${(audioBlobs[currentPartIndex][i].size / 1024).toFixed(2)} KB` : '';
+                
+                div.innerHTML = `
+                    <p><b>${i + 1}. ${q}</b></p>
+                    <div class="control-buttons">
+                        <button class="start-btn" data-part="${currentPartIndex}" data-index="${i}">
+                            <i class="fas fa-microphone"></i> เริ่มอัดเสียง
+                        </button>
+                        <button class="stop-btn" data-part="${currentPartIndex}" data-index="${i}" disabled>
+                            <i class="fas fa-stop-circle"></i> หยุดอัดเสียง
+                        </button>
+                        <button class="play-btn" data-part="${currentPartIndex}" data-index="${i}" ${!hasBlob ? 'disabled' : ''}>
+                            <i class="fas fa-play-circle"></i> ฟังเสียง
+                        </button>
+                        <audio id="audio-part${currentPartIndex}-q${i}" controls style="display:none;" ${hasBlob ? 'src="' + URL.createObjectURL(audioBlobs[currentPartIndex][i]) + '"' : ''}></audio>
+                        <span class="file-size" id="fileSize-part${currentPartIndex}-q${i}">${fileSizeText}</span>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+            checkSubmissionReady(currentPartIndex);
+        }
+
+        // --- Recording Logic ---
+        async function startRecording(part, index, button) {
             if (isRecording) {
-                console.warn("Already recording. Stop the current one first.");
+                showMessage("กำลังบันทึกเสียงอยู่ กรุณากดหยุดก่อน", "error");
                 return;
             }
 
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                mediaRecorder = new MediaRecorder(stream);
-                audioBlobs = []; // Clear previous blobs for this question
+                audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                const options = { mimeType: 'audio/webm' };
+                mediaRecorder = new MediaRecorder(audioStream, options);
 
-                mediaRecorder.ondataavailable = (event) => {
-                    audioBlobs.push(event.data);
+                const audioChunks = [];
+                mediaRecorder.ondataavailable = e => {
+                    if (e.data.size > 0) {
+                        audioChunks.push(e.data);
+                    }
                 };
 
                 mediaRecorder.onstop = () => {
-                    // Create a single Blob from all chunks
-                    const audioBlob = new Blob(audioBlobs, { type: 'audio/wav' }); 
+                    const blob = new Blob(audioChunks, { type: 'audio/webm' });
+                    if (!audioBlobs[part]) audioBlobs[part] = {};
+                    audioBlobs[part][index] = blob;
                     
-                    // Store the Blob in the correct part/question
-                    parts[currentPart].blobs[questionIndex] = audioBlob;
+                    const url = URL.createObjectURL(blob);
+                    const audioEl = document.getElementById(`audio-part${part}-q${index}`);
+                    audioEl.src = url;
+                    audioEl.style.display = "block";
                     
-                    // Update UI state and check submission readiness
-                    updateRecordingState(questionIndex, 'stopped');
-                    checkPartSubmissionReady();
+                    const fileSizeKB = (blob.size / 1024).toFixed(2);
+                    document.getElementById(`fileSize-part${part}-q${index}`).textContent = `ขนาดไฟล์: ${fileSizeKB} KB`;
+                    showMessage("บันทึกเสียงเรียบร้อยแล้ว", "info");
+
+                    isRecording = false; // Reset recording state
+                    updateButtonStates(part, index, false, true); // Update UI
+                    checkSubmissionReady(part);
                 };
 
                 mediaRecorder.start();
-                isRecording = true;
-                updateRecordingState(questionIndex, 'recording');
-            } catch (error) {
-                console.error("Error accessing microphone:", error);
-                alert("ไม่สามารถเข้าถึงไมโครโฟนได้ โปรดตรวจสอบการตั้งค่าเบราว์เซอร์");
-            }
-        }
+                isRecording = true; // Set recording state
+                updateButtonStates(part, index, true); // Update UI for recording
+                showMessage("กำลังอัดเสียง...", "info");
 
-        function stopRecording(questionIndex) {
-            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-                mediaRecorder.stop();
-                mediaRecorder.stream.getTracks().forEach(track => track.stop()); // Stop the stream
+            } catch (err) {
+                console.error("Media recording error:", err);
+                showMessage("ไม่สามารถเข้าถึงไมโครโฟนได้ กรุณาตรวจสอบสิทธิ์", "error");
                 isRecording = false;
             }
         }
 
-        function playRecording(questionIndex) {
-            const blob = parts[currentPart].blobs[questionIndex];
-            if (blob) {
-                const audioUrl = URL.createObjectURL(blob);
-                const audio = new Audio(audioUrl);
-                audio.play();
-                updateRecordingState(questionIndex, 'playing');
-                audio.onended = () => {
-                    updateRecordingState(questionIndex, 'stopped');
-                };
-            } else {
-                alert("ยังไม่มีไฟล์เสียงบันทึกไว้");
+        function stopRecording(part, index) {
+            if (mediaRecorder && mediaRecorder.state !== "inactive") {
+                mediaRecorder.stop();
+                audioStream.getTracks().forEach(track => track.stop());
             }
         }
 
-        // =================================================================
-        // 4. UI RENDER & UPDATE FUNCTIONS
-        // =================================================================
-
-        function renderQuestions() {
-            const partContainerId = `part${currentPart}-questions`;
-            const container = document.getElementById(partContainerId);
-            if (!container) return;
-
-            container.innerHTML = '';
+        function playRecording(part, index) {
+            const audioEl = document.getElementById(`audio-part${part}-q${index}`);
+            const playBtn = document.querySelector(`.play-btn[data-part="${part}"][data-index="${index}"]`);
             
-            parts[currentPart].questions.forEach((question, index) => {
-                const item = document.createElement('div');
-                item.className = 'question-item';
-                item.innerHTML = `
-                    <div class="question-text">
-                        <strong>คำถามที่ ${index + 1}:</strong> ${question}
-                    </div>
-                    <div class="controls" id="controls-${currentPart}-${index}">
-                        <button class="btn-danger" onclick="startRecording(${index})" id="start-btn-${currentPart}-${index}">เริ่มบันทึก</button>
-                        <button class="btn-secondary" onclick="stopRecording(${index})" id="stop-btn-${currentPart}-${index}" disabled>หยุดบันทึก</button>
-                        <button class="btn-success" onclick="playRecording(${index})" id="play-btn-${currentPart}-${index}" disabled>เล่นซ้ำ</button>
-                        <span class="status-text" id="status-${currentPart}-${index}">ยังไม่ได้บันทึก</span>
-                    </div>
-                `;
-                container.appendChild(item);
-            });
-        }
-
-        function updateRecordingState(questionIndex, state) {
-            const startBtn = document.getElementById(`start-btn-${currentPart}-${questionIndex}`);
-            const stopBtn = document.getElementById(`stop-btn-${currentPart}-${questionIndex}`);
-            const playBtn = document.getElementById(`play-btn-${currentPart}-${questionIndex}`);
-            const statusText = document.getElementById(`status-${currentPart}-${questionIndex}`);
-            
-            if (!startBtn || !stopBtn || !playBtn) return;
-
-            // Global State Reset (Disable all others when one is recording/playing)
-            document.querySelectorAll(`#part${currentPart} .controls button`).forEach(btn => {
-                btn.disabled = isRecording || state === 'playing';
-            });
-            
-            // Re-enable/Set State for the current question
-            if (state === 'recording') {
-                startBtn.disabled = true;
-                stopBtn.disabled = false;
-                playBtn.disabled = true;
-                statusText.innerText = 'กำลังบันทึก...';
-                statusText.style.color = var(--danger-color);
-            } else if (state === 'stopped') {
-                startBtn.disabled = false; // Allow re-recording
-                stopBtn.disabled = true;
-                playBtn.disabled = !parts[currentPart].blobs[questionIndex]; // Enable play if blob exists
-                statusText.innerText = parts[currentPart].blobs[questionIndex] ? 'บันทึกแล้ว' : 'ยังไม่ได้บันทึก';
-                statusText.style.color = parts[currentPart].blobs[questionIndex] ? var(--success-color) : var(--danger-color);
-            } else if (state === 'playing') {
-                startBtn.disabled = true;
-                stopBtn.disabled = true;
-                playBtn.disabled = true;
-                statusText.innerText = 'กำลังเล่น...';
-                statusText.style.color = var(--primary-color);
-            }
-        }
-
-        function checkPartSubmissionReady() {
-            const submitBtnId = `submitPart${currentPart}Btn`;
-            const submitBtn = document.getElementById(submitBtnId);
-            if (!submitBtn) return;
-            
-            // Check if all questions in the current part have a recorded blob
-            const allRecorded = parts[currentPart].questions.every((_, index) => parts[currentPart].blobs[index]);
-            
-            submitBtn.disabled = !allRecorded;
-        }
-
-        function changePart(nextPart) {
-            document.getElementById(`part${currentPart}`).classList.add('hidden');
-            currentPart = nextPart;
-            document.getElementById(`part${currentPart}`).classList.remove('hidden');
-            renderQuestions();
-        }
-
-        function updateProgressBar(percentage, status) {
-            document.getElementById('upload-progress').style.width = `${percentage}%`;
-            document.getElementById('progress-status').innerText = status;
-        }
-
-        // =================================================================
-        // 5. DATA UPLOAD FUNCTION
-        // =================================================================
-
-        async function uploadData(partNumber) {
-            const partBlobs = parts[partNumber].blobs;
-            
-            // Show progress bar and hide current part
-            document.getElementById(`part${partNumber}`).classList.add('hidden');
-            document.getElementById('progress-container').classList.remove('hidden');
-            updateProgressBar(0, 'กำลังเตรียมข้อมูล...');
-
-            const totalFiles = partBlobs.length;
-            let filesUploaded = 0;
-            
-            // The user_id is the unique UUID generated at the start
-            const user_id = CURRENT_ANONYMOUS_ID;
-            const email = CURRENT_ANONYMOUS_EMAIL; 
-
-            const uploadPromises = partBlobs.map(async (blob, index) => {
-                // Filename: [UUID]_[part#]_[q#].wav
-                const fileName = `${user_id}_part${partNumber}_q${index + 1}.wav`;
+            if (audioEl && audioEl.src) {
+                playBtn.innerHTML = '<i class="fas fa-pause-circle"></i> หยุดเล่น';
                 
-                try {
-                    // 1. Upload ไฟล์เสียงไปยัง Supabase Storage
+                audioEl.play();
+                updateButtonStates(part, index, false, true); // Disable other buttons while playing
+
+                audioEl.onended = () => {
+                    playBtn.innerHTML = '<i class="fas fa-play-circle"></i> ฟังเสียง';
+                    updateButtonStates(part, index, false, true); // Re-enable buttons after playing
+                };
+                
+                playBtn.onclick = () => {
+                    audioEl.pause();
+                    audioEl.currentTime = 0; // Reset
+                    playBtn.innerHTML = '<i class="fas fa-play-circle"></i> ฟังเสียง';
+                    updateButtonStates(part, index, false, true);
+                    playBtn.onclick = () => playRecording(part, index); // Restore original handler
+                };
+
+            } else {
+                showMessage("ไม่มีไฟล์เสียงให้เล่น", "error");
+            }
+        }
+        
+        // --- Upload Logic ---
+        async function uploadData(partNumber) {
+            if (!currentUser) {
+                return showMessage("ไม่พบผู้ใช้ กรุณาเข้าสู่ระบบก่อน", "error");
+            }
+            if (isRecording) {
+                 return showMessage("กรุณากดหยุดอัดเสียงก่อนส่งข้อมูล", "error");
+            }
+
+            const currentQuestions = parts[partNumber].questions;
+            checkSubmissionReady(partNumber); // Re-check before proceeding
+            const allRecorded = currentQuestions.every((_, i) => audioBlobs[partNumber] && audioBlobs[partNumber][i]);
+            if (!allRecorded) {
+                return showMessage("กรุณาอัดเสียงให้ครบทุกข้อก่อน", "error");
+            }
+
+            loadingOverlay.style.display = "flex";
+            progressBar.style.width = '0%';
+            loadingText.textContent = "กำลังเตรียมข้อมูล...";
+
+            try {
+                const uploadPromises = currentQuestions.map(async (q, i) => {
+                    const blob = audioBlobs[partNumber][i];
+                    // Use UUID and Part/Q index for clear, unique naming
+                    const fileName = `${currentUser.id}/part${partNumber}/q${i+1}_${uuidv4()}.webm`;
+                    
+                    // 1. Upload file to Supabase Storage
                     const { data: uploadData, error: uploadError } = await supabase.storage
                         .from('audios')
                         .upload(fileName, blob, {
                             cacheControl: '3600',
-                            upsert: false,
+                            upsert: false
                         });
 
-                    if (uploadError) {
-                        throw new Error(`Upload failed for Q${index + 1}: ${uploadError.message}`);
-                    }
+                    if (uploadError) { throw uploadError; }
 
-                    // 2. Insert ข้อมูลการส่งไปยังตาราง 'submissions'
-                    const { data: insertData, error: insertError } = await supabase
+                    // Get public URL immediately after successful upload
+                    const { data: { publicUrl } } = supabase.storage
+                        .from('audios')
+                        .getPublicUrl(fileName);
+
+                    // 2. Insert record into Supabase Database
+                    const { error: insertError } = await supabase
                         .from('submissions')
                         .insert([
                             {
-                                user_id: user_id, 
-                                email: email, 
+                                user_id: currentUser.id,
+                                email: currentUser.email,
                                 part_number: partNumber,
-                                question_number: index + 1,
-                                question_text: parts[partNumber].questions[index],
-                                file_path: uploadData.path, // Supabase path to the file
-                                submitted_at: new Date().toISOString()
+                                question_number: i + 1,
+                                question_text: currentQuestions[i],
+                                audio_url: publicUrl,
+                                created_at: new Date().toISOString()
                             }
                         ]);
                         
-                    if (insertError) {
-                        throw new Error(`Database insert failed for Q${index + 1}: ${insertError.message}`);
-                    }
+                    if (insertError) { throw insertError; }
                     
-                    filesUploaded++;
-                    const percentage = Math.round((filesUploaded / totalFiles) * 100);
-                    updateProgressBar(percentage, `อัปโหลด ${filesUploaded}/${totalFiles} ไฟล์...`);
-
-                } catch (error) {
-                    console.error('Submission failed:', error);
-                    updateProgressBar(100, `❌ การส่งข้อมูลล้มเหลว: ${error.message}`);
-                    throw error; // Re-throw to fail the Promise.all
+                    return true; // Indicate success for this item
+                });
+                
+                // Track progress visually (simplified, based on successful promise completion)
+                for (let i = 0; i < uploadPromises.length; i++) {
+                    await uploadPromises[i];
+                    const progress = Math.round(((i + 1) / currentQuestions.length) * 100);
+                    progressBar.style.width = `${progress}%`;
+                    loadingText.textContent = `อัปโหลดและบันทึกข้อมูล: ${i + 1} / ${currentQuestions.length} (${progress}%)`;
                 }
-            });
 
-            try {
-                await Promise.all(uploadPromises);
-                
-                updateProgressBar(100, '✅ อัปโหลดและบันทึกข้อมูลเสร็จสมบูรณ์!');
-                
-                // Delay for visual effect before continuing
-                setTimeout(() => {
-                    document.getElementById('progress-container').classList.add('hidden');
-                    // Check if it's the final part
-                    if (partNumber < 3) {
-                        changePart(partNumber + 1);
-                    } else {
-                        document.getElementById('final-modal').classList.remove('hidden');
-                    }
-                }, 1000);
+                showMessage(`ส่งไฟล์เสียง Part ${partNumber} เรียบร้อยแล้ว!`, "info");
+                return true;
 
-            } catch (error) {
-                // Error handling (already logged in the loop)
-                alert(`เกิดข้อผิดพลาดในการส่งข้อมูล: ${error.message}. โปรดลองอีกครั้ง.`);
-                document.getElementById('progress-container').classList.add('hidden');
-                document.getElementById(`part${partNumber}`).classList.remove('hidden');
+            } catch (err) {
+                console.error('เกิดข้อผิดพลาดในการอัปโหลด:', err);
+                showMessage(`เกิดข้อผิดพลาด: ${err.message}`, "error");
+                return false;
+            } finally {
+                // Ensure UI resets regardless of success/fail
+                loadingOverlay.style.display = "none";
             }
         }
 
-        // =================================================================
-        // 6. INITIALIZATION & EVENT LISTENERS
-        // =================================================================
+        // --- Initialization and Event Handlers ---
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Check authentication
+            const { data: { session }, error } = await supabase.auth.getSession();
+            
+            if (error || !session) {
+                // Redirect or handle unauthenticated state (Assuming index.html is the login page)
+                showMessage("กรุณาเข้าสู่ระบบก่อน", "error");
+                userNameDisplay.textContent = "ไม่ได้เข้าสู่ระบบ";
+                // Optionally redirect: window.location.href = "index.html";
+                return;
+            }
+            
+            // Set user data
+            currentUser = session.user;
+            // Fallback for user email/data, use ID if email is not available
+            const userIdentifier = currentUser.email || `ID: ${currentUser.id.substring(0, 8)}...`;
+            userNameDisplay.textContent = userIdentifier;
+            
+            // Render the first part
+            renderQuestions(parts[currentPartIndex]);
+        });
 
-        function init() {
-            // Display User Info with Anonymous ID
-            document.getElementById('user-info').innerText = `ผู้ใช้งาน: ${userName} (ID: ${user.id.substring(0, 8)}...)`;
+        // Event listener for all control buttons (Keep original logic)
+        document.addEventListener('click', e => {
+            const target = e.target.closest('button');
+            if (!target) return;
+            const part = parseInt(target.getAttribute('data-part'));
+            const index = parseInt(target.getAttribute('data-index'));
 
-            // Initial render
-            renderQuestions();
+            if (target.classList.contains('start-btn')) {
+                startRecording(part, index, target);
+            } else if (target.classList.contains('stop-btn')) {
+                stopRecording(part, index, target);
+            } else if (target.classList.contains('play-btn')) {
+                playRecording(part, index);
+            }
+        });
 
-            // Part 1 Submission
-            document.getElementById('submitPart1Btn').addEventListener('click', () => {
-                uploadData(1);
-            });
+        // Part 1 Submission
+        document.getElementById('submitPart1Btn').addEventListener('click', async () => {
+            const success = await uploadData(1);
+            if (success) {
+                popupTitle.textContent = "Part 1 สำเร็จ!";
+                popupMessage.textContent = "เตรียมตัวสำหรับคำถาม Part 2";
+                popup.style.display = 'flex';
+                popupBtn.onclick = () => {
+                    popup.style.display = 'none';
+                    part1Div.style.display = 'none';
+                    part2Div.style.display = 'block';
+                    currentPartIndex = 2;
+                    renderQuestions(parts[currentPartIndex]);
+                };
+            }
+        });
 
-            // Part 2 Submission
-            document.getElementById('submitPart2Btn').addEventListener('click', () => {
-                uploadData(2);
-            });
+        // Part 2 Submission
+        document.getElementById('submitPart2Btn').addEventListener('click', async () => {
+            const success = await uploadData(2);
+            if (success) {
+                popupTitle.textContent = "Part 2 สำเร็จ!";
+                popupMessage.textContent = "เตรียมตัวสำหรับคำถาม Part 3";
+                popup.style.display = 'flex';
+                popupBtn.onclick = () => {
+                    popup.style.display = 'none';
+                    part2Div.style.display = 'none';
+                    part3Div.style.display = 'block';
+                    currentPartIndex = 3;
+                    renderQuestions(parts[currentPartIndex]);
+                };
+            }
+        });
 
-            // Part 3 Submission (Final)
-            document.getElementById('submitPart3Btn').addEventListener('click', () => {
-                uploadData(3);
-            });
-
-            // Finalization Button
-            document.getElementById('closeWindowBtn').addEventListener('click', () => {
-                window.close();
-            });
-        }
-
-        // Run initialization
-        init();
+        // Part 3 Submission (Final)
+        document.getElementById('submitPart3Btn').addEventListener('click', async () => {
+            const success = await uploadData(3);
+            if (success) {
+                popupTitle.textContent = "แบบทดสอบเสร็จสมบูรณ์!";
+                popupMessage.textContent = "ขอบคุณที่ทำแบบทดสอบครับ! คุณสามารถออกจากระบบได้เลย";
+                popup.style.display = 'flex';
+                
+                popupBtn.textContent = "ออกจากระบบ";
+                popupBtn.onclick = async () => {
+                    const { error } = await supabase.auth.signOut();
+                    if (error) {
+                        console.error("Logout Error:", error.message);
+                        showMessage("เกิดข้อผิดพลาดในการออกจากระบบ", "error");
+                    } else {
+                        // Redirect to the login page (assuming index.html is the login/entry page)
+                        window.location.href = "index.html";
+                    }
+                };
+            }
+        });
 
     </script>
 </body>
