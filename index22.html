@@ -104,6 +104,10 @@
     <button id="submitBtn" class="hidden">ส่งคำตอบ</button>
 
     <div id="result"></div>
+    
+    <a href="index3.html">
+        <button style="margin-top: 20px;">ไปหน้าถัดไป</button>
+    </a>
 
     <script type="module">
         import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
@@ -170,86 +174,126 @@
             { q: "48. ควรตอบคำถามลูกค้าอย่างไรเมื่อไม่ทราบคำตอบ", a: "B", choices: ["ตอบมั่วไปก่อน", "ขอเวลาตรวจสอบและติดต่อกลับ", "หลีกเลี่ยงไม่ตอบ", "วางสาย"] },
             { q: "49. การทำความเข้าใจความต้องการลูกค้าช่วยอะไร", a: "D", choices: ["ทำให้เสียเวลา", "ทำให้ลูกค้าเบื่อ", "ไม่มีผล", "เสนอแผนที่ตรงกับลูกค้า"] },
             { q: "50. ข้อใดคือสิ่งที่ควรจดบันทึกหลังโทรหาลูกค้า", a: "C", choices: ["จำนวนเพื่อนของลูกค้า", "ที่อยู่บ้าน", "ความต้องการและข้อสงสัยของลูกค้า", "วันเกิดของตัวแทน"] }
-        ];
+            ];
 
-        const quizForm = document.getElementById('quizForm');
-        const submitBtn = document.getElementById('submitBtn');
-        const loading = document.getElementById('loading');
-        const resultDiv = document.getElementById('result');
+            const quizForm = document.getElementById('quizForm');
+            const submitBtn = document.getElementById('submitBtn');
+            const loading = document.getElementById('loading');
+            const resultDiv = document.getElementById('result');
 
-        function renderQuiz() {
-            loading.classList.add('hidden');
-            quizForm.classList.remove('hidden');
-            submitBtn.classList.remove('hidden');
+            function renderQuiz() {
+                loading.classList.add('hidden');
+                quizForm.classList.remove('hidden');
+                submitBtn.classList.remove('hidden');
 
-            questions.forEach((q, index) => {
-                const container = document.createElement('div');
-                container.className = 'question-container';
+                questions.forEach((q, index) => {
+                    const container = document.createElement('div');
+                    container.className = 'question-container';
 
-                const questionTitle = document.createElement('h3');
-                questionTitle.textContent = q.q;
-                container.appendChild(questionTitle);
+                    const questionTitle = document.createElement('h3');
+                    questionTitle.textContent = q.q;
+                    container.appendChild(questionTitle);
 
-                const ul = document.createElement('ul');
-                ul.className = 'choices';
+                    const ul = document.createElement('ul');
+                    ul.className = 'choices';
 
-                q.choices.forEach((choice, i) => {
-                    const li = document.createElement('li');
-                    const label = document.createElement('label');
-                    const input = document.createElement('input');
-                    input.type = 'radio';
-                    input.name = `question-${index}`;
-                    input.value = String.fromCharCode(65 + i);
-                    label.appendChild(input);
-                    label.appendChild(document.createTextNode(`${input.value}. ${choice}`));
-                    li.appendChild(label);
-                    ul.appendChild(li);
+                    q.choices.forEach((choice, i) => {
+                        const li = document.createElement('li');
+                        const label = document.createElement('label');
+                        const input = document.createElement('input');
+                        input.type = 'radio';
+                        input.name = `question-${index}`;
+                        input.value = String.fromCharCode(65 + i);
+                        label.appendChild(input);
+                        label.appendChild(document.createTextNode(`${input.value}. ${choice}`));
+                        li.appendChild(label);
+                        ul.appendChild(li);
+                    });
+
+                    container.appendChild(ul);
+                    quizForm.appendChild(container);
                 });
-
-                container.appendChild(ul);
-                quizForm.appendChild(container);
-            });
-        }
-
-        renderQuiz();
-
-        submitBtn.addEventListener('click', async () => {
-            let score = 0;
-            const answers = [];
-
-            questions.forEach((q, index) => {
-                const selected = document.querySelector(`input[name="question-${index}"]:checked`);
-                const answer = selected ? selected.value : null;
-                answers.push(answer);
-                if (answer === q.a) score++;
-            });
-
-            const totalQuestions = questions.length;
-
-            const { error } = await supabase
-                .from('quiz_results')
-                .insert([
-                    {
-                        user_id: currentUser?.id || null,
-                        user_email: currentUser?.email || null,
-                        score: score,
-                        total_questions: totalQuestions,
-                        answers: answers
-                    }
-                ]);
-
-            if (error) {
-                console.error('Error saving quiz result:', error);
-                resultDiv.textContent = 'เกิดข้อผิดพลาดในการบันทึกผล กรุณาลองใหม่';
-                resultDiv.style.backgroundColor = '#ffd1d1';
-                resultDiv.style.color = '#900';
-            } else {
-                resultDiv.textContent = `คุณได้คะแนน ${score} จาก ${totalQuestions} ข้อ`;
             }
 
-            resultDiv.style.display = 'block';
-            submitBtn.disabled = true;
-        });
+            renderQuiz();
+
+            
+async function saveQuizResult(userId, userEmail, score, totalQuestions, answers) {
+  const supabaseUrl = "https://wzwyotzzxycqfwercakh.supabase.co";
+  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6d3lvdHp6eHljcWZ3ZXJjYWtoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNTg3MTMsImV4cCI6MjA3MjYzNDcxM30.lgiAf9oBUqsaWGb3u_80wuoKAODQHE_lIBxpGumhrno";
+
+  try {
+    const response = await fetch(`${supabaseUrl}/rest/v1/quiz_results`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "apikey": supabaseKey,
+        "Authorization": `Bearer ${supabaseKey}`,
+        "Prefer": "return=representation"
+      },
+      body: JSON.stringify({
+        user_id: userId,
+        user_email: userEmail,
+        score: score,
+        total_questions: totalQuestions,
+        answers: answers
+      })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Error saving quiz result:", errorText);
+      alert("เกิดข้อผิดพลาดในการบันทึกผล กรุณาลองใหม่");
+      return;
+    }
+
+    const data = await response.json();
+    console.log("Saved:", data);
+    alert(`บันทึกผลสำเร็จ! คุณได้คะแนน ${score}/${totalQuestions}`);
+  } catch (error) {
+    console.error("Error saving quiz result:", error);
+    alert("เกิดข้อผิดพลาดในการเชื่อมต่อ");
+  }
+}
+
+
+submitBtn.addEventListener('click', async () => {
+                let score = 0;
+                const answers = [];
+
+                questions.forEach((q, index) => {
+                    const selected = document.querySelector(`input[name="question-${index}"]:checked`);
+                    const answer = selected ? selected.value : null;
+                    answers.push(answer);
+                    if (answer === q.a) score++;
+                });
+
+                const totalQuestions = questions.length;
+
+                const { error } = await supabase
+                    .from('quiz_results')
+                    .insert([
+                        {
+                            user_id: currentUser?.id || null,
+                            user_email: currentUser?.email || null,
+                            score: score,
+                            total_questions: totalQuestions,
+                            answers: answers
+                        }
+                    ]);
+
+                if (error) {
+                    console.error('Error saving quiz result:', error);
+                    resultDiv.textContent = 'เกิดข้อผิดพลาดในการบันทึกผล กรุณาลองใหม่';
+                    resultDiv.style.backgroundColor = '#ffd1d1';
+                    resultDiv.style.color = '#900';
+                } else {
+                    resultDiv.textContent = `คุณได้คะแนน ${score} จาก ${totalQuestions} ข้อ`;
+                }
+
+                resultDiv.style.display = 'block';
+                submitBtn.disabled = true;
+            });
     </script>
 </body>
 </html>
