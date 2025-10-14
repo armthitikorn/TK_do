@@ -265,9 +265,10 @@
         let audioStream;    
         let isRecording = false; // Added state flag
 
-        // **การเปลี่ยนแปลงเพื่อตัด Login:** สร้างผู้ใช้จำลอง (Mock User)
+        // **การเปลี่ยนแปลงเพื่อตัด Login และแก้ไขข้อผิดพลาด UUID:** สร้างผู้ใช้จำลอง (Mock User)
+        // ต้องใช้ uuidv4() เพื่อให้ id มีรูปแบบ UUID ที่ถูกต้องตามที่ Supabase DB ต้องการ
         const currentUser = { 
-            id: 'mock-user-' + Date.now(), // Unique ID for storage path
+            id: uuidv4(), // <--- แก้ไขตรงนี้
             email: 'tester@example.com' // Placeholder email for database entry
         };
         
@@ -474,11 +475,9 @@
             }
         }
         
-        // --- Upload Logic (Minor change: check for currentUser simplified) ---
+        // --- Upload Logic (No major change needed, just use the correct currentUser) ---
         async function uploadData(partNumber) {
-            // Check for mock user is simplified now
             if (!currentUser || !currentUser.id) {
-                // This shouldn't happen with the mock user, but kept for robustness
                 return showMessage("ไม่พบข้อมูลผู้ใช้สำหรับอัปโหลด", "error");
             }
             if (isRecording) {
@@ -486,7 +485,7 @@
             }
 
             const currentQuestions = parts[partNumber].questions;
-            checkSubmissionReady(partNumber); // Re-check before proceeding
+            checkSubmissionReady(partNumber);
             const allRecorded = currentQuestions.every((_, i) => audioBlobs[partNumber] && audioBlobs[partNumber][i]);
             if (!allRecorded) {
                 return showMessage("กรุณาอัดเสียงให้ครบทุกข้อก่อน", "error");
@@ -499,8 +498,7 @@
             try {
                 const uploadPromises = currentQuestions.map(async (q, i) => {
                     const blob = audioBlobs[partNumber][i];
-                    // Use UUID and Part/Q index for clear, unique naming
-                    // The path now uses the mock-user-ID: mock-user-XXXXXXXXXX/part1/...
+                    
                     const fileName = `${currentUser.id}/part${partNumber}/q${i+1}_${uuidv4()}.webm`;
                     
                     // 1. Upload file to Supabase Storage
@@ -519,6 +517,7 @@
                         .getPublicUrl(fileName);
 
                     // 2. Insert record into Supabase Database
+                    // Note: currentUser.id is now a correct UUID
                     const { error: insertError } = await supabase
                         .from('submissions')
                         .insert([
@@ -535,10 +534,10 @@
                         
                     if (insertError) { throw insertError; }
                     
-                    return true; // Indicate success for this item
+                    return true;
                 });
                 
-                // Track progress visually (simplified, based on successful promise completion)
+                // Track progress visually
                 for (let i = 0; i < uploadPromises.length; i++) {
                     await uploadPromises[i];
                     const progress = Math.round(((i + 1) / currentQuestions.length) * 100);
@@ -551,10 +550,10 @@
 
             } catch (err) {
                 console.error('เกิดข้อผิดพลาดในการอัปโหลด:', err);
-                showMessage(`เกิดข้อผิดพลาด: ${err.message}`, "error");
+                // The error now should be handled by the UI, but the source of 22P02 is fixed
+                showMessage(`เกิดข้อผิดพลาด: ${err.message}`, "error"); 
                 return false;
             } finally {
-                // Ensure UI resets regardless of success/fail
                 loadingOverlay.style.display = "none";
             }
         }
@@ -584,7 +583,7 @@
             }
         });
 
-        // Part 1 Submission (Keep original Part logic and flow)
+        // Part 1 Submission
         document.getElementById('submitPart1Btn').addEventListener('click', async () => {
             const success = await uploadData(1);
             if (success) {
@@ -601,7 +600,7 @@
             }
         });
 
-        // Part 2 Submission (Keep original Part logic and flow)
+        // Part 2 Submission
         document.getElementById('submitPart2Btn').addEventListener('click', async () => {
             const success = await uploadData(2);
             if (success) {
@@ -618,7 +617,7 @@
             }
         });
 
-        // Part 3 Submission (Final) (Modified to remove final logout and simply display success)
+        // Part 3 Submission (Final)
         document.getElementById('submitPart3Btn').addEventListener('click', async () => {
             const success = await uploadData(3);
             if (success) {
@@ -629,7 +628,6 @@
                 popupBtn.textContent = "ปิด";
                 popupBtn.onclick = () => {
                     popup.style.display = 'none';
-                    // Optionally disable all buttons in part 3 to prevent re-submission/changes
                     document.getElementById('submitPart3Btn').disabled = true;
                     document.querySelectorAll('#part3Questions button').forEach(btn => btn.disabled = true);
                 };
