@@ -173,26 +173,23 @@
         document.getElementById("healthConcernForm").addEventListener("submit", async function(event) {
             event.preventDefault();
             
-            const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-            if (sessionError || !session) {
-                alert("กรุณาเข้าสู่ระบบก่อนทำการทดสอบ");
-                window.location.href = "part1_phone_rejection.html"; // หรือหน้าที่คุณต้องการ
-                return;
-            }
-
+            // 1. รวบรวมคำตอบจากฟอร์ม (ตรรกะเดิม)
             const answers = {};
             for (let i = 1; i <= 10; i++) {
                 answers[`q${i}`] = document.getElementById(`q${i}`).value;
             }
 
-            const currentUser = session.user;
+            // 2. กำหนดค่า User เป็น "anonymous" (ตัดระบบล็อกอินออก)
+            // *** สำคัญ: ตาราง Supabase (subjective_answers) ต้องตั้งค่า user_id เป็นชนิด 'text' หรือ 'varchar' ***
+            const userId = "anonymous";
+            const userEmail = "anonymous@example.com";
             
-            // บันทึกคำตอบลงใน Supabase Database
+            // 3. บันทึกคำตอบลงใน Supabase Database (ตรรกะเดิม)
             const { data, error } = await supabase
-                .from('subjective_answers') // **เปลี่ยนชื่อตารางตามที่คุณสร้าง**
+                .from('subjective_answers') // **ชื่อตารางของคุณ**
                 .insert([{
-                    user_id: currentUser.id,
-                    user_email: currentUser.email,
+                    user_id: userId,
+                    user_email: userEmail,
                     answers: answers // JSONB field
                 }]);
 
