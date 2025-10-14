@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>แบบทดสอบการบันทึกเสียง (Anonymous)</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        /* Modern CSS Styles */
+        :root {
+            --primary-color: #007bff; /* Blue */
+            --secondary-color: #6c757d; /* Gray */
+            --success-color: #28a745; /* Green */
+            --danger-color: #dc3545; /* Red */
+            --background-color: #f8f9fa;
+            --card-background: #ffffff;
+            --border-radius: 8px;
+            --shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background-color);
+            margin: 0;
+            padding: 20px;
+            color: #343a40;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            margin: auto;
+        }
+
+        header {
+            background-color: var(--card-background);
+            padding: 20px 30px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+            width: 100%;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            margin-bottom: 5px;
+            font-size: 1.8rem;
+        }
+
+        #user-info {
+            font-size: 0.9rem;
+            color: var(--secondary-color);
+        }
+
+        .card {
+            background-color: var(--card-background);
+            padding: 25px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .card-header {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #495057;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 10px;
+        }
+
+        .question-item {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #dee2e6;
+            border-radius: var(--border-radius);
+        }
+
+        .question-text {
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 50px; /* Pill shape for modern look */
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: background-color 0.3s, transform 0.1s;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        .btn-primary:hover { background-color: #0056b3; }
+
+        .btn-success {
+            background-color: var(--success-color);
+            color: white;
+        }
+        .btn-success:hover { background-color: #1e7e34; }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: white;
+        }
+        .btn-danger:hover { background-color: #bd2130; }
+
+        .btn-secondary {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+        .btn-secondary:hover { background-color: #5a6268; }
+
+        .progress-bar-container {
+            height: 8px;
+            background-color: #e9ecef;
+            border-radius: 4px;
+            margin-top: 15px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0;
+            background-color: var(--success-color);
+            transition: width 0.4s ease;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .status-text {
+            margin-left: 10px;
+            font-size: 0.9rem;
+            color: var(--danger-color);
+        }
+
+        /* Modal/Popup Styling */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background-color: var(--card-background);
+            padding: 30px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            text-align: center;
+            max-width: 400px;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .modal-content h2 {
+            color: var(--success-color);
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎤 ระบบบันทึกเสียงแบบทดสอบ</h1>
+            <p id="user-info">กำลังตรวจสอบผู้ใช้งาน...</p>
+        </header>
+
+        <div id="progress-container" class="card hidden">
+            <div class="card-header">กำลังอัปโหลดข้อมูล...</div>
+            <div class="progress-bar-container">
+                <div id="upload-progress" class="progress-bar" style="width: 0%;"></div>
+            </div>
+            <p id="progress-status" style="margin-top: 10px; text-align: center; font-weight: 500;"></p>
+        </div>
+
+        <div id="part1" class="card">
+            <div class="card-header">ส่วนที่ 1: คำถามทั่วไป</div>
+            <div id="part1-questions">
+                </div>
+            <button id="submitPart1Btn" class="btn-primary" disabled>ไปยังส่วนที่ 2</button>
+        </div>
+
+        <div id="part2" class="card hidden">
+            <div class="card-header">ส่วนที่ 2: การเล่าเรื่อง</div>
+            <div id="part2-questions">
+                </div>
+            <button id="submitPart2Btn" class="btn-primary" disabled>ไปยังส่วนที่ 3</button>
+        </div>
+
+        <div id="part3" class="card hidden">
+            <div class="card-header">ส่วนที่ 3: การออกเสียงคำศัพท์</div>
+            <div id="part3-questions">
+                </div>
+            <button id="submitPart3Btn" class="btn-success" disabled>สิ้นสุดและส่งข้อมูล</button>
+        </div>
+    </div>
+
+    <div id="final-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2>✅ การทดสอบเสร็จสมบูรณ์</h2>
+            <p>ขอบคุณที่เข้าร่วมการทดสอบ ข้อมูลของคุณถูกส่งไปยังระบบเรียบร้อยแล้ว</p>
+            <button id="closeWindowBtn" class="btn-secondary" style="margin-top: 15px;">ปิดหน้านี้</button>
+        </div>
+    </div>
+
+    <script>
+        // =================================================================
+        // 1. SUPABASE SETUP & ANONYMOUS ID GENERATION
+        // =================================================================
+
+        // แทนที่ด้วยคีย์ของคุณ
+        const SUPABASE_URL = 'YOUR_SUPABASE_URL'; 
+        const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+
+        // Initialize Supabase Client
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            auth: {
+                persistSession: false, // ไม่ต้องเก็บ session เพราะใช้ anonymous
+            },
+        });
+
+        // Function to generate a simple UUID (v4-like)
+        function simpleUUID() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+
+        // Key name for storing the ID in localStorage
+        const ANONYMOUS_ID_KEY = 'anon_session_id';
+
+        // Function to get or create the anonymous session ID
+        function getOrCreateAnonymousId() {
+            let anonId = localStorage.getItem(ANONYMOUS_ID_KEY);
+            if (!anonId) {
+                anonId = simpleUUID(); // Generate new ID
+                localStorage.setItem(ANONYMOUS_ID_KEY, anonId); // Store it
+                console.log("New Anonymous Session ID created and stored:", anonId);
+            } else {
+                console.log("Existing Anonymous Session ID loaded:", anonId);
+            }
+            return anonId;
+        }
+
+        // Global Anonymous Variables
+        const CURRENT_ANONYMOUS_ID = getOrCreateAnonymousId(); 
+        const CURRENT_ANONYMOUS_EMAIL = `${CURRENT_ANONYMOUS_ID}@anonymous.com`; 
+        const CURRENT_ANONYMOUS_NAME = 'ผู้ใช้งานทั่วไป (Anonymous)'; 
+        
+        // กำหนดค่า user และ userName สำหรับใช้ในตรรกะของโปรแกรม
+        const user = { id: CURRENT_ANONYMOUS_ID, email: CURRENT_ANONYMOUS_EMAIL }; 
+        const userName = CURRENT_ANONYMOUS_NAME;
+
+        // =================================================================
+        // 2. STATE MANAGEMENT & DATA STRUCTURES
+        // =================================================================
+
+        let currentPart = 1;
+        let mediaRecorder;
+        let audioBlobs = [];
+        let isRecording = false;
+
+        const parts = {
+            1: {
+                questions: [
+                    "แนะนำตัวคุณเองสั้นๆ",
+                    "อธิบายว่าคุณทำอะไรในวันหยุดสุดสัปดาห์ที่ผ่านมา",
+                    "พูดถึงอาหารที่คุณชอบมากที่สุดและเหตุผล"
+                ],
+                blobs: []
+            },
+            2: {
+                questions: [
+                    "ให้คุณเล่าเรื่องสั้นๆ หรือนิทานที่คุณรู้จัก",
+                    "อธิบายกระบวนการทำอาหารที่คุณทำเป็นประจำ"
+                ],
+                blobs: []
+            },
+            3: {
+                questions: [
+                    "ออกเสียงคำว่า 'Synchronization'",
+                    "ออกเสียงคำว่า 'Entrepreneurship'",
+                    "ออกเสียงคำว่า 'Consciousness'"
+                ],
+                blobs: []
+            }
+        };
+
+        // =================================================================
+        // 3. MEDIA RECORDER FUNCTIONS
+        // =================================================================
+
+        async function startRecording(questionIndex) {
+            if (isRecording) {
+                console.warn("Already recording. Stop the current one first.");
+                return;
+            }
+
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                audioBlobs = []; // Clear previous blobs for this question
+
+                mediaRecorder.ondataavailable = (event) => {
+                    audioBlobs.push(event.data);
+                };
+
+                mediaRecorder.onstop = () => {
+                    // Create a single Blob from all chunks
+                    const audioBlob = new Blob(audioBlobs, { type: 'audio/wav' }); 
+                    
+                    // Store the Blob in the correct part/question
+                    parts[currentPart].blobs[questionIndex] = audioBlob;
+                    
+                    // Update UI state and check submission readiness
+                    updateRecordingState(questionIndex, 'stopped');
+                    checkPartSubmissionReady();
+                };
+
+                mediaRecorder.start();
+                isRecording = true;
+                updateRecordingState(questionIndex, 'recording');
+            } catch (error) {
+                console.error("Error accessing microphone:", error);
+                alert("ไม่สามารถเข้าถึงไมโครโฟนได้ โปรดตรวจสอบการตั้งค่าเบราว์เซอร์");
+            }
+        }
+
+        function stopRecording(questionIndex) {
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+                mediaRecorder.stream.getTracks().forEach(track => track.stop()); // Stop the stream
+                isRecording = false;
+            }
+        }
+
+        function playRecording(questionIndex) {
+            const blob = parts[currentPart].blobs[questionIndex];
+            if (blob) {
+                const audioUrl = URL.createObjectURL(blob);
+                const audio = new Audio(audioUrl);
+                audio.play();
+                updateRecordingState(questionIndex, 'playing');
+                audio.onended = () => {
+                    updateRecordingState(questionIndex, 'stopped');
+                };
+            } else {
+                alert("ยังไม่มีไฟล์เสียงบันทึกไว้");
+            }
+        }
+
+        // =================================================================
+        // 4. UI RENDER & UPDATE FUNCTIONS
+        // =================================================================
+
+        function renderQuestions() {
+            const partContainerId = `part${currentPart}-questions`;
+            const container = document.getElementById(partContainerId);
+            if (!container) return;
+
+            container.innerHTML = '';
+            
+            parts[currentPart].questions.forEach((question, index) => {
+                const item = document.createElement('div');
+                item.className = 'question-item';
+                item.innerHTML = `
+                    <div class="question-text">
+                        <strong>คำถามที่ ${index + 1}:</strong> ${question}
+                    </div>
+                    <div class="controls" id="controls-${currentPart}-${index}">
+                        <button class="btn-danger" onclick="startRecording(${index})" id="start-btn-${currentPart}-${index}">เริ่มบันทึก</button>
+                        <button class="btn-secondary" onclick="stopRecording(${index})" id="stop-btn-${currentPart}-${index}" disabled>หยุดบันทึก</button>
+                        <button class="btn-success" onclick="playRecording(${index})" id="play-btn-${currentPart}-${index}" disabled>เล่นซ้ำ</button>
+                        <span class="status-text" id="status-${currentPart}-${index}">ยังไม่ได้บันทึก</span>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function updateRecordingState(questionIndex, state) {
+            const startBtn = document.getElementById(`start-btn-${currentPart}-${questionIndex}`);
+            const stopBtn = document.getElementById(`stop-btn-${currentPart}-${questionIndex}`);
+            const playBtn = document.getElementById(`play-btn-${currentPart}-${questionIndex}`);
+            const statusText = document.getElementById(`status-${currentPart}-${questionIndex}`);
+            
+            if (!startBtn || !stopBtn || !playBtn) return;
+
+            // Global State Reset (Disable all others when one is recording/playing)
+            document.querySelectorAll(`#part${currentPart} .controls button`).forEach(btn => {
+                btn.disabled = isRecording || state === 'playing';
+            });
+            
+            // Re-enable/Set State for the current question
+            if (state === 'recording') {
+                startBtn.disabled = true;
+                stopBtn.disabled = false;
+                playBtn.disabled = true;
+                statusText.innerText = 'กำลังบันทึก...';
+                statusText.style.color = var(--danger-color);
+            } else if (state === 'stopped') {
+                startBtn.disabled = false; // Allow re-recording
+                stopBtn.disabled = true;
+                playBtn.disabled = !parts[currentPart].blobs[questionIndex]; // Enable play if blob exists
+                statusText.innerText = parts[currentPart].blobs[questionIndex] ? 'บันทึกแล้ว' : 'ยังไม่ได้บันทึก';
+                statusText.style.color = parts[currentPart].blobs[questionIndex] ? var(--success-color) : var(--danger-color);
+            } else if (state === 'playing') {
+                startBtn.disabled = true;
+                stopBtn.disabled = true;
+                playBtn.disabled = true;
+                statusText.innerText = 'กำลังเล่น...';
+                statusText.style.color = var(--primary-color);
+            }
+        }
+
+        function checkPartSubmissionReady() {
+            const submitBtnId = `submitPart${currentPart}Btn`;
+            const submitBtn = document.getElementById(submitBtnId);
+            if (!submitBtn) return;
+            
+            // Check if all questions in the current part have a recorded blob
+            const allRecorded = parts[currentPart].questions.every((_, index) => parts[currentPart].blobs[index]);
+            
+            submitBtn.disabled = !allRecorded;
+        }
+
+        function changePart(nextPart) {
+            document.getElementById(`part${currentPart}`).classList.add('hidden');
+            currentPart = nextPart;
+            document.getElementById(`part${currentPart}`).classList.remove('hidden');
+            renderQuestions();
+        }
+
+        function updateProgressBar(percentage, status) {
+            document.getElementById('upload-progress').style.width = `${percentage}%`;
+            document.getElementById('progress-status').innerText = status;
+        }
+
+        // =================================================================
+        // 5. DATA UPLOAD FUNCTION
+        // =================================================================
+
+        async function uploadData(partNumber) {
+            const partBlobs = parts[partNumber].blobs;
+            
+            // Show progress bar and hide current part
+            document.getElementById(`part${partNumber}`).classList.add('hidden');
+            document.getElementById('progress-container').classList.remove('hidden');
+            updateProgressBar(0, 'กำลังเตรียมข้อมูล...');
+
+            const totalFiles = partBlobs.length;
+            let filesUploaded = 0;
+            
+            // The user_id is the unique UUID generated at the start
+            const user_id = CURRENT_ANONYMOUS_ID;
+            const email = CURRENT_ANONYMOUS_EMAIL; 
+
+            const uploadPromises = partBlobs.map(async (blob, index) => {
+                // Filename: [UUID]_[part#]_[q#].wav
+                const fileName = `${user_id}_part${partNumber}_q${index + 1}.wav`;
+                
+                try {
+                    // 1. Upload ไฟล์เสียงไปยัง Supabase Storage
+                    const { data: uploadData, error: uploadError } = await supabase.storage
+                        .from('audios')
+                        .upload(fileName, blob, {
+                            cacheControl: '3600',
+                            upsert: false,
+                        });
+
+                    if (uploadError) {
+                        throw new Error(`Upload failed for Q${index + 1}: ${uploadError.message}`);
+                    }
+
+                    // 2. Insert ข้อมูลการส่งไปยังตาราง 'submissions'
+                    const { data: insertData, error: insertError } = await supabase
+                        .from('submissions')
+                        .insert([
+                            {
+                                user_id: user_id, 
+                                email: email, 
+                                part_number: partNumber,
+                                question_number: index + 1,
+                                question_text: parts[partNumber].questions[index],
+                                file_path: uploadData.path, // Supabase path to the file
+                                submitted_at: new Date().toISOString()
+                            }
+                        ]);
+                        
+                    if (insertError) {
+                        throw new Error(`Database insert failed for Q${index + 1}: ${insertError.message}`);
+                    }
+                    
+                    filesUploaded++;
+                    const percentage = Math.round((filesUploaded / totalFiles) * 100);
+                    updateProgressBar(percentage, `อัปโหลด ${filesUploaded}/${totalFiles} ไฟล์...`);
+
+                } catch (error) {
+                    console.error('Submission failed:', error);
+                    updateProgressBar(100, `❌ การส่งข้อมูลล้มเหลว: ${error.message}`);
+                    throw error; // Re-throw to fail the Promise.all
+                }
+            });
+
+            try {
+                await Promise.all(uploadPromises);
+                
+                updateProgressBar(100, '✅ อัปโหลดและบันทึกข้อมูลเสร็จสมบูรณ์!');
+                
+                // Delay for visual effect before continuing
+                setTimeout(() => {
+                    document.getElementById('progress-container').classList.add('hidden');
+                    // Check if it's the final part
+                    if (partNumber < 3) {
+                        changePart(partNumber + 1);
+                    } else {
+                        document.getElementById('final-modal').classList.remove('hidden');
+                    }
+                }, 1000);
+
+            } catch (error) {
+                // Error handling (already logged in the loop)
+                alert(`เกิดข้อผิดพลาดในการส่งข้อมูล: ${error.message}. โปรดลองอีกครั้ง.`);
+                document.getElementById('progress-container').classList.add('hidden');
+                document.getElementById(`part${partNumber}`).classList.remove('hidden');
+            }
+        }
+
+        // =================================================================
+        // 6. INITIALIZATION & EVENT LISTENERS
+        // =================================================================
+
+        function init() {
+            // Display User Info with Anonymous ID
+            document.getElementById('user-info').innerText = `ผู้ใช้งาน: ${userName} (ID: ${user.id.substring(0, 8)}...)`;
+
+            // Initial render
+            renderQuestions();
+
+            // Part 1 Submission
+            document.getElementById('submitPart1Btn').addEventListener('click', () => {
+                uploadData(1);
+            });
+
+            // Part 2 Submission
+            document.getElementById('submitPart2Btn').addEventListener('click', () => {
+                uploadData(2);
+            });
+
+            // Part 3 Submission (Final)
+            document.getElementById('submitPart3Btn').addEventListener('click', () => {
+                uploadData(3);
+            });
+
+            // Finalization Button
+            document.getElementById('closeWindowBtn').addEventListener('click', () => {
+                window.close();
+            });
+        }
+
+        // Run initialization
+        init();
+
+    </script>
+</body>
+</html>
