@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>แบบทดสอบอัตนัย - ความกังวลของลูกค้า</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* CSS สไตล์เดิม */
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        h2 {
+            text-align: center;
+            color: #007acc;
+            margin-bottom: 30px;
+        }
+        label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 8px;
+        }
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+        textarea {
+            height: 100px;
+            resize: vertical;
+        }
+        button {
+            display: block;
+            width: 100%;
+            max-width: 300px;
+            margin: 30px auto 0;
+            padding: 15px;
+            font-size: 1.1rem;
+            background-color: #007acc;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #005fa3;
+        }
+        .message-box {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            text-align: center;
+            display: none; 
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>แบบทดสอบอัตนัย: ความกังวลของลูกค้า</h2>
+        <div id="messageBox" class="message-box"></div>
+
+        <form id="subjectiveForm">
+            <label for="name">ชื่อผู้ทำแบบทดสอบ:</label>
+            <input type="text" id="name" name="name" required placeholder="กรุณาระบุชื่อ-นามสกุล" />
+
+            <label for="q1">1. ลูกค้ามีความกังวลเรื่องใดมากที่สุด?</label>
+            <textarea id="q1" name="q1" required></textarea>
+
+            <label for="q2">2. ลูกค้าต้องการข้อมูลเพิ่มเติมเกี่ยวกับอะไร?</label>
+            <textarea id="q2" name="q2" required></textarea>
+
+            <label for="q3">3. ลูกค้ามีข้อสงสัยเกี่ยวกับขั้นตอนการสมัครหรือไม่?</label>
+            <textarea id="q3" name="q3" required></textarea>
+
+            <label for="q4">4. ลูกค้ากังวลเกี่ยวกับค่าใช้จ่ายหรือผลประโยชน์หรือไม่?</label>
+            <textarea id="q4" name="q4" required></textarea>
+
+            <label for="q5">5. ลูกค้าต้องการความช่วยเหลือในด้านใด?</label>
+            <textarea id="q5" name="q5" required></textarea>
+
+            <label for="q6">6. ลูกค้ามีประสบการณ์ไม่ดีในอดีตเกี่ยวกับบริการหรือไม่?</label>
+            <textarea id="q6" name="q6" required></textarea>
+
+            <label for="q7">7. ลูกค้าต้องการให้ปรับปรุงอะไรในบริการ?</label>
+            <textarea id="q7" name="q7" required></textarea>
+
+            <label for="q8">8. ลูกค้ามีความคาดหวังอย่างไรจากการใช้บริการ?</label>
+            <textarea id="q8" name="q8" required></textarea>
+
+            <label for="q9">9. ลูกค้ามีข้อเสนอแนะเพิ่มเติมหรือไม่?</label>
+            <textarea id="q9" name="q9" required></textarea>
+
+            <label for="q10">10. ลูกค้ารู้สึกอย่างไรกับการให้บริการในปัจจุบัน?</label>
+            <textarea id="q10" name="q10" required></textarea>
+
+            <button type="submit" id="submitBtn">ส่งคำตอบ</button>
+        </form>
+    </div>
+
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+        // --- Supabase Setup ---
+        const supabaseUrl = 'https://wzwyotzzxycqfwercakh.supabase.co';
+        // ใช้ Key เดียวกันกับที่คุณใช้ในโค้ดก่อนหน้า
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6d3lvdHp6eHljcWZ3ZXJjYWtoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNTg3MTMsImV4cCI6MjA3MjYzNDcxM30.lgiAf9oBUqsaWGb3u_80wuoKAODQHE_lIBxpGumhrno';
+        const supabase = createClient(supabaseUrl, supabaseKey);
+
+        let currentUserId = "anonymous";
+        let currentUserEmail = "anonymous@example.com";
+        const submitBtn = document.getElementById("submitBtn");
+        const messageBox = document.getElementById("messageBox");
+
+        function showMessage(text, isError = false) {
+            messageBox.textContent = text;
+            messageBox.style.display = 'block';
+            if (isError) {
+                messageBox.style.backgroundColor = '#f8d7da';
+                messageBox.style.color = '#721c24';
+            } else {
+                messageBox.style.backgroundColor = '#d4edda';
+                messageBox.style.color = '#155724';
+            }
+            setTimeout(() => {
+                messageBox.style.display = 'none';
+            }, 5000);
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                // พยายามดึงข้อมูล User
+                const { data: { user } } = await supabase.auth.getUser();
+                if (user) {
+                    currentUserId = user.id;
+                    currentUserEmail = user.email || "user_email_not_available@supabase.com";
+                }
+            } catch (e) {
+                console.warn("Auth check failed, using anonymous data.", e);
+            }
+        });
+
+        document.getElementById("subjectiveForm").addEventListener("submit", async function(event) {
+            event.preventDefault();
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = "กำลังส่งข้อมูล...";
+
+            const name = document.getElementById("name").value.trim();
+            
+            // แก้ไขปัญหา 'answers is not defined' แล้ว
+            const answers = {}; 
+            
+            for (let i = 1; i <= 10; i++) {
+                answers[`q${i}`] = document.getElementById(`q${i}`).value.trim();
+            }
+
+            const dataToInsert = {
+                // 1. ข้อมูลสำคัญ: ชื่อผู้ทำแบบทดสอบ (คอลัมน์นี้มีอยู่ในตารางแล้ว)
+                name: name,             
+                
+                // 2. คำตอบอัตนัย (คอลัมน์นี้เป็น JSONB ในตารางแล้ว)
+                answers: answers,       
+                
+                // 3. ข้อมูลอ้างอิงผู้ใช้ (คอลัมน์ user_id เป็น text แล้ว)
+                user_id: currentUserId,
+                user_email: currentUserEmail,
+                
+                // **ไม่ส่ง user_text เพื่อหลีกเลี่ยง Error PGRST204**
+            };
+
+            const { error } = await supabase
+                .from('subjective_answers') 
+                .insert([dataToInsert]);
+
+            if (error) {
+                console.error("Error saving answers:", error);
+                showMessage(`เกิดข้อผิดพลาดในการบันทึกข้อมูล: ${error.message}. กรุณาตรวจสอบ RLS/Data Type`, true);
+                submitBtn.disabled = false;
+                submitBtn.textContent = "ส่งคำตอบ";
+            } else {
+                showMessage(`ส่งคำตอบเรียบร้อยแล้ว, ผู้ทำแบบทดสอบ: ${name}`, false);
+                
+                // นำทางไปยังหน้าถัดไปเมื่อสำเร็จ
+                setTimeout(() => {
+                    window.location.href = "index4.html";
+                }, 1500);
+            }
+        });
+    </script>
+</body>
+</html>
